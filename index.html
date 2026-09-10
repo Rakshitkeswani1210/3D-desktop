@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>iPod classic — 3D</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --ink: #e8ecf5;
+        --dim: rgba(232, 236, 245, 0.55);
+        --edge: rgba(232, 236, 245, 0.16);
+        --panel: rgba(12, 15, 26, 0.5);
+        --accent: #7fd6ff;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0; height: 100%; overflow: hidden;
+        background: #04050b;
+        font: 13px/1.5 ui-sans-serif, -apple-system, "Helvetica Neue", Arial, sans-serif;
+        color: var(--ink);
+      }
+      #scene { display: block; width: 100%; height: 100%; touch-action: none; }
+
+      .hud {
+        position: fixed;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      /* A stage's HUD is a wrapper with no box of its own, so the panels inside
+         it stay position:fixed against the viewport rather than against it. */
+      .stage-hud { display: contents; }
+      .stage-hud[hidden] { display: none !important; }
+
+      .pill {
+        font: inherit; font-size: 12px;
+        color: var(--ink);
+        background: var(--panel);
+        border: 1px solid var(--edge);
+        border-radius: 999px;
+        padding: 6px 14px;
+        cursor: pointer;
+        backdrop-filter: blur(10px);
+        transition: background .15s, opacity .15s, color .15s, border-color .15s;
+      }
+      .pill:hover { background: rgba(255,255,255,.12); }
+      .pill.off { opacity: .45; }
+
+      /* ── the stage switcher ─────────────────────────────────────────── */
+
+      #switcher {
+        top: 22px; left: 50%; transform: translateX(-50%);
+        display: flex; gap: 6px;
+        z-index: 3;
+      }
+      .pill.on {
+        color: var(--accent);
+        border-color: rgba(127, 214, 255, .45);
+        background: rgba(127, 214, 255, .12);
+      }
+      #switcher button.on {
+        color: var(--accent);
+        border-color: rgba(127, 214, 255, .45);
+        background: rgba(127, 214, 255, .12);
+      }
+      #switcher kbd {
+        font: inherit; font-size: 10px;
+        color: var(--dim);
+        margin-right: 6px;
+      }
+      #switcher button.on kbd { color: rgba(127, 214, 255, .7); }
+
+      /* ── titles and hints, shared by both stages ────────────────────── */
+
+      .title {
+        top: 22px; left: 24px;
+        pointer-events: none;
+        letter-spacing: .01em;
+      }
+      .title b { font-size: 15px; font-weight: 600; display: block; }
+      .title span { font-size: 12px; color: var(--dim); }
+
+      .hint {
+        bottom: 22px; left: 24px;
+        font-size: 12px; color: var(--dim);
+        pointer-events: none;
+      }
+      .hint kbd {
+        font: inherit; color: var(--ink);
+        background: rgba(255,255,255,.08);
+        border: 1px solid var(--edge);
+        border-radius: 4px; padding: 1px 5px;
+      }
+
+      .controls {
+        top: 22px; right: 24px;
+        display: flex; gap: 8px;
+      }
+
+      /* Names the button you just pressed — the iPod's screen is intentionally
+         blank, so this is the only feedback that the press registered. */
+      #readout {
+        bottom: 22px; left: 50%; transform: translateX(-50%) translateY(6px);
+        font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+        background: var(--panel);
+        border: 1px solid var(--edge);
+        border-radius: 999px;
+        padding: 7px 18px;
+        backdrop-filter: blur(10px);
+        opacity: 0;
+        transition: opacity .18s ease, transform .18s ease;
+        pointer-events: none;
+      }
+      #readout.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+      /* The way back out of the zoom. Only offered once you are in. */
+      #desk-back {
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(-4px);
+        transition: opacity .25s ease, transform .25s ease, background .15s;
+      }
+      #desk-back.on { opacity: 1; pointer-events: auto; transform: none; }
+
+      /* Narrow viewports: the subject fills most of the frame, so the HUD has
+         to shrink onto the edges rather than float over the middle of it. */
+      @media (max-width: 700px) {
+        .title { top: 44px; left: 12px; }
+        .title b { font-size: 12px; }
+        .title span { display: none; }
+        .controls { top: 44px; right: 12px; gap: 5px; }
+        .pill { font-size: 10px; padding: 4px 9px; }
+        #switcher { top: 8px; }
+        .hint { display: none; }
+        #readout { bottom: 12px; font-size: 10px; padding: 5px 13px; }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="scene"></canvas>
+
+    <div id="switcher" class="hud">
+      <button class="pill" type="button" data-stage="ipod"><kbd>1</kbd>iPod</button>
+      <button class="pill" type="button" data-stage="desktop"><kbd>2</kbd>Desktop</button>
+    </div>
+
+    <!-- ── the iPod stage ─────────────────────────────────────────────── -->
+    <div id="hud-ipod" class="stage-hud">
+      <div class="title hud">
+        <b>iPod classic</b>
+        <span>61.8 &times; 103.5 &times; 10.5 mm</span>
+      </div>
+
+      <div class="controls hud">
+        <button id="finish" class="pill" type="button">Black</button>
+        <button id="sound" class="pill" type="button">Sound on</button>
+        <a href="./viewer.html" style="text-decoration:none">
+          <button class="pill" type="button">Parts</button>
+        </a>
+      </div>
+
+      <div class="hint hud">
+        <kbd>drag</kbd> to rotate &middot; <kbd>scroll</kbd> to zoom &middot;
+        click the wheel &middot; drag around it to spin
+      </div>
+
+      <div id="readout" class="hud"></div>
+    </div>
+
+    <!-- ── the desktop stage ──────────────────────────────────────────── -->
+    <div id="hud-desktop" class="stage-hud" hidden>
+      <div class="title hud">
+        <b>Dimension tower &amp; 17&Prime; CRT</b>
+        <span>on a 1500 mm desk</span>
+      </div>
+
+      <div class="controls hud">
+        <button id="desk-back" class="pill" type="button">&larr; Back</button>
+        <button id="desk-camera" class="pill" type="button">Camera</button>
+        <button id="desk-tweak" class="pill" type="button">Tweak</button>
+        <a href="./viewer.html?part=tower" style="text-decoration:none">
+          <button class="pill" type="button">Parts</button>
+        </a>
+      </div>
+
+      <div id="desk-hint" class="hint hud"></div>
+    </div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./vendor/three/three.module.js",
+          "three/addons/": "./vendor/three/addons/"
+        }
+      }
+    </script>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

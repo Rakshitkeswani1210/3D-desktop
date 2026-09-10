@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>iPod classic — parts</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --ink: #e8ecf5;
+        --dim: rgba(232, 236, 245, 0.55);
+        --edge: rgba(232, 236, 245, 0.16);
+        --panel: rgba(12, 15, 26, 0.55);
+        --accent: #7fd6ff;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0; height: 100%; overflow: hidden; background: #04050b;
+        font: 13px/1.5 ui-sans-serif, -apple-system, "Helvetica Neue", Arial, sans-serif;
+        color: var(--ink);
+      }
+      #scene { display: block; width: 100%; height: 100%; touch-action: none; }
+
+      .hud { position: fixed; user-select: none; -webkit-user-select: none; }
+
+      #side {
+        top: 0; left: 0; bottom: 0; width: 160px;
+        padding: 18px 14px;
+        background: linear-gradient(90deg, rgba(6,8,15,.88), rgba(6,8,15,.4));
+        display: flex; flex-direction: column; gap: 14px;
+        overflow-y: auto;
+      }
+      #side h1 {
+        font-size: 12px; letter-spacing: .13em; text-transform: uppercase;
+        color: var(--dim); margin: 0; font-weight: 600;
+      }
+      #parts { display: flex; flex-direction: column; gap: 3px; }
+      #parts h2 {
+        font-size: 10px; letter-spacing: .13em; text-transform: uppercase;
+        color: rgba(232,236,245,.32); margin: 10px 0 2px; font-weight: 600;
+        padding-left: 10px;
+      }
+      #parts h2:first-child { margin-top: 0; }
+      #parts button {
+        font: inherit; text-align: left; color: var(--dim);
+        background: none; border: 0; border-left: 2px solid transparent;
+        padding: 5px 10px; cursor: pointer; border-radius: 0 5px 5px 0;
+      }
+      #parts button:hover { color: var(--ink); background: rgba(255,255,255,.05); }
+      #parts button.on {
+        color: var(--ink); border-left-color: var(--accent);
+        background: rgba(127,214,255,.10);
+      }
+
+      #tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
+      #tools button {
+        font: inherit; font-size: 11px; color: var(--ink);
+        background: var(--panel); border: 1px solid var(--edge);
+        border-radius: 999px; padding: 5px 11px; cursor: pointer;
+      }
+      #tools button:hover { background: rgba(255,255,255,.12); }
+      #tools button.on { border-color: var(--accent); color: var(--accent); }
+      #tools button.off { opacity: .45; }
+
+      #stats {
+        font-size: 11px; color: var(--dim);
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      }
+      #back { font-size: 11px; color: var(--dim); text-decoration: none; }
+      #back:hover { color: var(--ink); }
+    </style>
+  </head>
+  <body>
+    <canvas id="scene"></canvas>
+
+    <aside id="side" class="hud">
+      <a id="back" href="./index.html">&larr; back to the scene</a>
+      <h1>Parts</h1>
+      <div id="parts"></div>
+      <div id="stats"></div>
+      <div id="tools">
+        <button id="reload" type="button">Reload</button>
+        <button id="spin" type="button">Spin</button>
+        <button id="wire" type="button">Wire</button>
+        <button id="grid" type="button">Grid</button>
+        <button id="finish" type="button">Black</button>
+      </div>
+    </aside>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./vendor/three/three.module.js",
+          "three/addons/": "./vendor/three/addons/"
+        }
+      }
+    </script>
+    <script type="module" src="./src/viewer.js"></script>
+  </body>
+</html>

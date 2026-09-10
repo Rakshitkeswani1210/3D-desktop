@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+._*
+
+# Editor / OS noise
+*.swp
+*~
+Thumbs.db
+
+# Machine-specific Claude Code settings. The shared .claude/launch.json is
+# committed on purpose; anything ending in .local.json is yours alone.
+.claude/settings.local.json
+.claude/*.local.json
+
+# There is deliberately no node_modules entry here, and nothing to build.
+# vendor/three IS committed: the project pins three.js r160 locally so a clone
+# runs with no npm install and no network. See the README.
