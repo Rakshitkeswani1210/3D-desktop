@@ -1,25 +1,22 @@
 /**
  * main.js — the router. Assembles nothing and models nothing.
  *
- * The page holds two unrelated scenes: an iPod you orbit, and a desktop PC
- * photographed on a desk. This file decides which one is on screen, swaps the
- * HUD to match, and wires the keys. Everything either scene actually is lives
- * in stages/.
+ * One scene: a 2000s desktop PC photographed on a wood desk, whose power
+ * button boots Windows 95 on the CRT. Everything it actually is lives in
+ * stages/desktop.js.
  *
- * Stages are built LAZILY on first switch and then kept alive, so the second
- * time you press 1 the iPod is exactly where you left it — still spinning,
- * still on the finish you chose — rather than rebuilt from scratch.
+ * The stage machinery is kept even though there is only one stage. It is a few
+ * lines — a factory map, a lazy build, a cache — and it is what made adding a
+ * second scene, and later removing it, a local change rather than a rewrite.
  */
 
 import { createEngine } from './core/engine.js';
-import { createIpodStage } from './stages/ipod.js';
 import { createDesktopStage } from './stages/desktop.js';
 
 const engine = createEngine({ canvas: document.getElementById('scene') });
 
 /** id -> factory. The build happens on first show, not here. */
 const FACTORIES = {
-  ipod: createIpodStage,
   desktop: createDesktopStage,
 };
 
@@ -39,48 +36,13 @@ function show(id) {
 
   // Each stage owns a HUD panel; only the active one is in the document flow,
   // because a hidden panel that still accepts clicks is a real bug the moment
-  // two stages have a button in the same corner.
+  // a second stage puts a button in the same corner.
   document.querySelectorAll('.stage-hud').forEach((el) => {
     el.hidden = el.id !== stage.hud;
   });
-  document.querySelectorAll('#switcher button').forEach((b) => {
-    b.classList.toggle('on', b.dataset.stage === id);
-  });
-
-  history.replaceState(null, '', `?stage=${id}`);
 }
 
-/* ─────────────────────────────── keys ─────────────────────────────── */
-
-/**
- * Cmd+1 / Cmd+2, and plain 1 / 2.
- *
- * Both, on purpose. Chrome and Safari reserve Cmd+1..9 on macOS for switching
- * browser tabs and a page usually cannot cancel that, so the Cmd chord works
- * where the browser permits it and the bare digit always does. The switcher in
- * the corner is clickable for the same reason.
- */
-const KEYS = { 1: 'ipod', 2: 'desktop' };
-
-window.addEventListener('keydown', (event) => {
-  const id = KEYS[event.key];
-  if (!id) return;
-  // Never steal the digit from a text field, if this page ever grows one.
-  if (event.target instanceof HTMLInputElement) return;
-  if (event.ctrlKey || event.altKey) return;
-  event.preventDefault();
-  show(id);
-});
-
-document.querySelectorAll('#switcher button').forEach((b) => {
-  b.addEventListener('click', () => show(b.dataset.stage));
-});
-
-/* ─────────────────────────────── boot ─────────────────────────────── */
-
-// Deep-linkable as index.html?stage=desktop.
-const requested = new URLSearchParams(location.search).get('stage');
-show(FACTORIES[requested] ? requested : 'ipod');
+show('desktop');
 engine.start();
 
 // Handy from the console when tuning.

@@ -5,7 +5,7 @@
  *
  * 1. The silver front bezel is not a separate part. The whole shell is ONE
  *    bevelled extrusion split into two material groups at TOWER.seamZ by
- *    groupByZ — the same trick objects/Body.js uses on the iPod, for the same
+ *    groupByZ — one extrusion carrying two finishes, split at a z seam, for the
  *    reason: modelling the bezel as its own mesh leaves either a step or a
  *    hairline gap along the edge, and a material change cannot.
  *

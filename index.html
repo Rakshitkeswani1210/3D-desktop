@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>iPod classic — 3D</title>
+    <title>Rakshit&rsquo;s First Desktop</title>
     <style>
       :root {
         color-scheme: dark;
@@ -46,6 +46,49 @@
       }
       .pill:hover { background: rgba(255,255,255,.12); }
       .pill.off { opacity: .45; }
+
+      /* ── the nudge toward the power button ──────────────────────────── */
+
+      /* Anchored to the button in 3D and positioned from the frame loop, so it
+         follows the tower through camera moves rather than sitting in a corner
+         hoping you look at it. Pointer-events off: it must never eat the click
+         it is asking for. */
+      #power-hint {
+        position: fixed;
+        z-index: 2;
+        pointer-events: none;
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(.96);
+        transition: opacity .45s ease, transform .45s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+        font-size: 12px;
+        color: var(--ink);
+        background: var(--panel);
+        border: 1px solid var(--edge);
+        border-radius: 999px;
+        padding: 7px 14px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 6px 24px rgba(0,0,0,.35);
+      }
+      #power-hint.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+      /* A slow pulse on the dot only. The whole pill throbbing would be a
+         nag; one blinking LED reads as the machine waiting for you. */
+      #power-hint i {
+        width: 7px; height: 7px; border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 8px var(--accent);
+        animation: hint-pulse 1.8s ease-in-out infinite;
+      }
+      @keyframes hint-pulse { 0%, 100% { opacity: 1 } 50% { opacity: .25 } }
+
+      @media (prefers-reduced-motion: reduce) {
+        #power-hint { transition: opacity .2s }
+        #power-hint i { animation: none }
+      }
 
       /* ── the stage switcher ─────────────────────────────────────────── */
 
@@ -140,39 +183,10 @@
   <body>
     <canvas id="scene"></canvas>
 
-    <div id="switcher" class="hud">
-      <button class="pill" type="button" data-stage="ipod"><kbd>1</kbd>iPod</button>
-      <button class="pill" type="button" data-stage="desktop"><kbd>2</kbd>Desktop</button>
-    </div>
-
-    <!-- ── the iPod stage ─────────────────────────────────────────────── -->
-    <div id="hud-ipod" class="stage-hud">
-      <div class="title hud">
-        <b>iPod classic</b>
-        <span>61.8 &times; 103.5 &times; 10.5 mm</span>
-      </div>
-
-      <div class="controls hud">
-        <button id="finish" class="pill" type="button">Black</button>
-        <button id="sound" class="pill" type="button">Sound on</button>
-        <a href="./viewer.html" style="text-decoration:none">
-          <button class="pill" type="button">Parts</button>
-        </a>
-      </div>
-
-      <div class="hint hud">
-        <kbd>drag</kbd> to rotate &middot; <kbd>scroll</kbd> to zoom &middot;
-        click the wheel &middot; drag around it to spin
-      </div>
-
-      <div id="readout" class="hud"></div>
-    </div>
-
     <!-- ── the desktop stage ──────────────────────────────────────────── -->
     <div id="hud-desktop" class="stage-hud" hidden>
       <div class="title hud">
-        <b>Dimension tower &amp; 17&Prime; CRT</b>
-        <span>on a 1500 mm desk</span>
+        <b>Rakshit&rsquo;s First Desktop</b>
       </div>
 
       <div class="controls hud">
@@ -185,6 +199,7 @@
       </div>
 
       <div id="desk-hint" class="hint hud"></div>
+      <div id="power-hint"><i></i>Press the power button to start</div>
     </div>
 
     <script type="importmap">

@@ -1,9 +1,8 @@
 /**
  * room.js — the backdrop behind the desk scene.
  *
- * Same contract as theme/backdrop.js (render / update / resize) and drawn the
- * same way, as a fullscreen quad in its own ortho pass before the main scene.
- * The shader is deliberately much quieter than the aurora's: the wall in this
+ * Render / update / resize, drawn as a fullscreen quad in its own ortho pass
+ * before the main scene. The shader is deliberately quiet: the wall in this
  * scene is real geometry, so all this has to do is fill whatever sits beyond
  * it with something that agrees — a dark room falling away from one warm lamp.
  *

@@ -1,12 +1,10 @@
 /**
  * room-env.js — the desk scene's reflection map.
  *
- * A separate module from core/environment.js rather than a parameter on it.
- * That file is tuned to a hair for the iPod's polished stainless back — two
- * opposed keys so the metal never goes dead as you orbit, strip softboxes
- * narrow enough to reflect as distinct highlights — and none of that applies
- * here. Nothing in the desk scene is a mirror, the camera never orbits, and
- * what this map has to do is much simpler: put a warm lamp on one side of every
+ * Deliberately simple. A studio rig — opposed keys so metal never goes dead as
+ * you orbit, softboxes narrow enough to reflect as distinct highlights — buys
+ * nothing here: nothing in the desk scene is a mirror and the camera never
+ * orbits. What this map has to do is much simpler: put a warm lamp on one side of every
  * matte plastic surface and a cool fill on the other, so a bezel has a readable
  * gradient across it instead of one flat value.
  *

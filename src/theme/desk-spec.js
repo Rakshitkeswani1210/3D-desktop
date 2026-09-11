@@ -1,10 +1,10 @@
 /**
  * desk-spec.js — every dimension of the desktop scene, in real millimetres.
  *
- * Same contract as theme/spec.js and the same unit system (scene units are
- * centimetres, so `u` is imported rather than redefined) — but a separate file,
- * because the two scenes share no measurements at all and interleaving them
- * would make both harder to read.
+ * Units: the numbers below are millimetres, and scene units are centimetres
+ * (U = 0.1). Modelling in raw metres would put a 1 mm bevel at the edge of the
+ * depth buffer's useful precision; centimetres keep near and far comfortable
+ * while the source numbers stay readable as real measurements.
  *
  * Axis convention, written down once because everything depends on it:
  *   +X right, +Y up, +Z toward the viewer.
@@ -12,8 +12,11 @@
  * "how tall is it" and "where does it stand" the same number.
  */
 
-export { U, u } from './spec.js';
-import { u } from './spec.js';
+/** Millimetres -> scene units. */
+export const U = 0.1;
+
+/** Convert a millimetre measurement to scene units. */
+export const u = (mm) => mm * U;
 
 /**
  * How far each applied feature sits proud of the surface it is mounted on.

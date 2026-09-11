@@ -1,10 +1,23 @@
-# Two interactable 3D scenes — an iPod classic, and a 2000s desktop
+# Rakshit's First Desktop — an interactable 3D scene
 
-Two unrelated subjects sharing one renderer: an **iPod classic** you orbit,
-press and spin on an animated aurora, and a **2000s desktop PC** photographed on
-a wood desk whose power button actually boots the machine. No build step, no
-npm, no binary assets: every texture is drawn on a `<canvas>` and every sound is
-synthesised in WebAudio.
+A **2000s desktop PC** photographed on a wood desk, whose power button actually
+boots Windows 95 on the CRT. No build step and no npm: every texture is drawn
+on a `<canvas>`, and every noise the machine makes — clicks, the fan, the power
+thunk — is synthesised in WebAudio.
+
+Internet Explorer is the one place the illusion is a composite: the chrome is
+painted on the tube like everything else, but the page itself is a real iframe
+warped onto the content area, because a live website cannot be turned into a
+WebGL texture. It hides itself whenever the renderer would have drawn something
+in front of it, and a hand-drawn version of the page sits underneath as the
+fallback.
+
+The two exceptions to "no binary assets" are both in the desktop's UI, and both
+are deliberate. The Windows 95 icons are hand-pixelled bitmaps that cannot be
+drawn procedurally without looking like an imitation, so they travel as base64
+in `src/ui/win95/icons.js`. And the music player plays real files from
+`assets/music/`, because a music player that plays a synthesised approximation
+of a song is not a music player.
 
 ```bash
 python3 serve.py 5174
@@ -21,46 +34,32 @@ serves `.js` as `text/javascript`, so a refresh always runs what is on disk.
 > `Operation not permitted` — macOS withholds access to `~/Documents` from the
 > python it spawns. Running `serve.py` from a terminal works fine.
 
-## Switching scenes
-
-| Key | Scene |
-| --- | --- |
-| <kbd>1</kbd> or <kbd>⌘1</kbd> | iPod |
-| <kbd>2</kbd> or <kbd>⌘2</kbd> | Desktop |
-
-Both, on purpose. **Chrome and Safari reserve ⌘1–9 on macOS for switching browser
-tabs, and a page usually cannot cancel that** — so the ⌘ chord works where the
-browser permits it and the bare digit always does. The switcher at the top of
-the window is clickable for the same reason. Deep-linkable as
-`index.html?stage=desktop`.
-
-Stages are built lazily on first switch and then kept alive, so coming back
-finds the iPod exactly where you left it and the PC still running.
 
 ## What you can do
-
-**iPod**
-
-| Gesture | Result |
-| --- | --- |
-| Drag the body or the backdrop | Orbit |
-| Scroll | Zoom |
-| Click a wheel quadrant or the centre | Press, with the matching click |
-| Drag around the wheel | Scroll ticks, ~15° apart |
-| Leave it alone for 4s | Idle turntable, until you touch it |
-| **Black / Silver** | Swap colourway |
-| **Sound on** | Mute |
-
-**Desktop**
 
 | Gesture | Result |
 | --- | --- |
 | Move the pointer | A slight, heavily damped camera parallax |
+| Wait 3s on arrival | A callout appears over the power button, and goes when you press it |
 | Click the tower's power button | Boots: LED, fan, the tube striking on, camera flies into the screen |
+| — | The welcome note is already open when it comes up, every boot |
 | <kbd>esc</kbd> or **Back** | Fly back out to the wide shot; the machine stays on |
 | Click the power button again | Shut down — the raster collapses and the camera pulls back |
 | <kbd>c</kbd> or **Camera** | Unlock the camera and orbit freely; again to fly it back |
 | <kbd>t</kbd> or **Tweak** | Open the live control panel |
+| Click **My Music** on the screen | Opens the player |
+| Click a track | Plays it — transport, scrub bar and clock all live |
+| Drag the window's title bar | Moves it, clamped so the bar stays grabbable |
+| Click **My Computer** | A folder holding everything else on the desktop |
+| Click **My Documents** | A folder of shortcuts to shipped work |
+| Click a shortcut | Opens the real page in a new browser tab |
+| Click **Recycle Bin** | A folder too — a link, and one thing Figma replaced |
+| Click **My Photos** | Opens Rakshit's Memories as a folder of thumbnails |
+| Click a photo | Opens it full size in a single-document viewer |
+| Click **Notes** | Opens Rakshit's welcome note in Notepad |
+| Click **Internet Explorer** | Opens rakshit.design, live, inside the drawn browser |
+| Scroll or click inside the page | It is a real iframe — the site behaves normally |
+| **Start** > Shut Down | Powers the machine off |
 
 Both screens are **deliberately blank**. Adding a UI later needs no change to
 either model, and the two expose the *same* handle, so a UI written against one
@@ -161,8 +160,8 @@ src/
 ```
 
 Every component exports `meta` + `create()` and appears in `registry.js`, so one
-entry adds a part to the inspector. Every dimension comes from `theme/spec.js`
-or `theme/desk-spec.js`, in real millimetres.
+entry adds a part to the inspector. Every dimension comes from
+`theme/desk-spec.js`, in real millimetres.
 
 ## The stage contract
 
@@ -241,13 +240,7 @@ window edge for free. The desk scene's own `MOUNT` steps are 0.2 mm rather than
 0.05, because its camera's near plane is 0.5 — the fly-in ends a few units off
 the glass, and the depth buffer has correspondingly less to spend far away.
 
-**The environment map matters more than the lights.** The iPod's back is
-metalness 1 at roughness 0.075, so it reflects almost nothing *but* the
-environment — with no env map it is a flat black slab regardless of lighting.
-`core/environment.js` paints an equirect studio in code. A flat face reflects
-whatever lies *behind the camera*: `u≈0.75` seen from the front, `u≈0.25` from
-the back, so there is a key at both. A single key looks fine head-on and goes
-dead the moment you orbit around. `core/room-env.js` is a separate, much simpler
+**The environment map matters more than the lights.** `core/room-env.js` is a
 map for the desk — nothing there is a mirror and the camera never orbits, so it
 only has to put a warm lamp on one side of every matte plastic and a cool fill
 on the other.

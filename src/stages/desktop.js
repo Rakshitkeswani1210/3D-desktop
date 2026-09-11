@@ -19,9 +19,9 @@
  *      ^                                                    │
  *      └───────────── press again, or Esc ──────────────────┘
  *
- * Two rules are carried over from core/interaction.js because they matter
- * everywhere, not just on the iPod: audio.unlock() has to run inside a real
- * gesture or the first sound of the session is silent, and a press is gated on
+ * Two rules about pointer input matter everywhere: audio.unlock() has to run
+ * inside a real gesture or the first sound of the session is silent, and a
+ * press is gated on
  * the pointer having barely moved, so a drag that happens to end over the
  * button does not fire it.
  */
@@ -37,14 +37,16 @@ import { createTweakPanel } from '../core/tweak.js';
 import { CONTROL_GROUPS } from './desktop-controls.js';
 import { disposeTree } from '../lib/dispose.js';
 import { SHARED_MATERIALS } from '../theme/shared-materials.js';
-import { drawBoot, drawOn, drawOff } from '../theme/desk-textures.js';
+import { drawBoot, drawOff, crtGrille } from '../theme/desk-textures.js';
+import { createShell } from '../ui/win95/shell.js';
+import { createWebFrame } from '../ui/win95/web-frame.js';
 import * as Desktop from '../objects/desktop/Desktop.js';
 import * as audio from '../core/audio.js';
 
 export const meta = {
   id: 'desktop',
   label: 'Desktop',
-  title: '2000s desktop — 3D',
+  title: "Rakshit’s First Desktop",
   hud: 'hud-desktop',
 };
 
@@ -85,6 +87,30 @@ export function createDesktopStage({ renderer }) {
   // `let`, not `const`: the tweak panel can rebuild the whole desk when a
   // dimension changes, and every one of these handles is replaced with it.
   let { screen, monitor, keyboard, power } = desktop.userData;
+
+  /**
+   * The operating system on the tube.
+   *
+   * It owns its own state and repaints itself; this stage only tells it when
+   * the machine is on, hands it pointer positions in raster pixels, and gives
+   * it the tube's scanlines to lay over whatever it drew.
+   */
+  const shell = createShell({
+    width: screen.width,
+    height: screen.height,
+    overlay: (ctx, w, h) => crtGrille(ctx, w, h, 1),
+    onShutDown: () => throwSwitch(),
+  });
+
+  /**
+   * The live page overlay.
+   *
+   * A real iframe warped onto IE's content area. It is DOM over WebGL, so it
+   * cannot be occluded by anything the renderer draws — which is why it is
+   * driven from the frame loop and hidden the moment the shell says something
+   * should be in front of it.
+   */
+  const webFrame = createWebFrame();
 
   /* ── framings ──────────────────────────────────────────────────────── */
 
@@ -156,6 +182,8 @@ export function createDesktopStage({ renderer }) {
   let startY = 0;
   let moved = 0;
   let hovered = null;
+  // True while a press that began on the glass is still down.
+  let screenArmed = false;
 
   /** null when settled; otherwise seconds since the switch was thrown. */
   let bootT = null;
@@ -170,6 +198,50 @@ export function createDesktopStage({ renderer }) {
   const backBtn = document.getElementById('desk-back');
   const camBtn = document.getElementById('desk-camera');
   const hint = document.getElementById('desk-hint');
+  const powerHint = document.getElementById('power-hint');
+
+  /**
+   * The nudge toward the power button.
+   *
+   * Everything on this machine is behind one press, and a dark screen on a
+   * photograph of a desk does not obviously invite one. The bottom-left hint
+   * says so already, but it sits where nobody is looking. This waits three
+   * seconds — long enough not to talk over the arrival, short enough to catch
+   * somebody before they give up — and then points at the actual button.
+   */
+  const HINT_AFTER = 3;
+  const hintAnchor = new THREE.Vector3();
+  let hintT = null;                 // seconds since arming, or null when not armed
+
+  function dismissHint() {
+    hintT = null;
+    powerHint.classList.remove('show');
+  }
+
+  /** Re-arm on arrival, but only if there is anything to ask for. */
+  function armHint() {
+    powerHint.classList.remove('show');
+    hintT = on ? null : 0;
+  }
+
+  /**
+   * Park the pill above the power button, in page coordinates.
+   * Returns false when the button is behind the camera or off screen, which is
+   * the only sane time to hide a callout that points at something.
+   */
+  function placeHint() {
+    const zone = power.hitZones[0];
+    if (!zone) return false;
+    zone.getWorldPosition(hintAnchor).project(camera);
+    if (hintAnchor.z > 1) return false;
+    const rect = el.getBoundingClientRect();
+    const px = rect.left + (hintAnchor.x * 0.5 + 0.5) * rect.width;
+    const py = rect.top + (-hintAnchor.y * 0.5 + 0.5) * rect.height;
+    if (px < rect.left || px > rect.right || py < rect.top || py > rect.bottom) return false;
+    powerHint.style.left = `${Math.round(px)}px`;
+    powerHint.style.top = `${Math.round(py - 58)}px`;
+    return true;
+  }
 
   /**
    * Hand the camera to the user, or take it back.
@@ -240,6 +312,7 @@ export function createDesktopStage({ renderer }) {
 
     on = power.press();
     audio.click('power');
+    dismissHint();
     bootT = 0;
     degaussed = false;
     flown = false;
@@ -327,7 +400,8 @@ export function createDesktopStage({ renderer }) {
     power.setOn(wasOn);
     monitor.setLamp(wasOn ? 1 : 0);
     keyboard.setLamp(wasOn ? 1 : 0);
-    screen.redraw(wasOn ? drawOn : drawOff);
+    if (wasOn) shell.attach(screen);
+    else { shell.detach(); screen.redraw(drawOff); }
     bootT = null;
 
     applyLive();
@@ -364,6 +438,26 @@ export function createDesktopStage({ renderer }) {
     return hits.length ? hits[0] : null;
   }
 
+  /**
+   * Where on the raster the pointer is, in canvas pixels, or null.
+   *
+   * The picture is a bulged PlaneGeometry, so it carries UVs and the raycaster
+   * returns them with the intersection. UV maps straight to canvas pixels — v
+   * is flipped because a texture counts up from the bottom and a canvas counts
+   * down from the top. Raycasting the real curved surface rather than a flat
+   * stand-in is what keeps the mapping honest near the edges, where the bulge
+   * has moved the glass a visible distance toward the viewer.
+   */
+  function screenPoint(event) {
+    if (!on || bootT !== null) return null;
+    const rect = el.getBoundingClientRect();
+    ndc.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    ndc.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(ndc, camera);
+    const uv = raycaster.intersectObject(screen.mesh, false)[0]?.uv;
+    return uv ? { x: uv.x * screen.width, y: (1 - uv.y) * screen.height } : null;
+  }
+
   function setHover(id) {
     if (hovered === id) return;
     hovered = id;
@@ -378,6 +472,17 @@ export function createDesktopStage({ renderer }) {
     startX = event.clientX;
     startY = event.clientY;
     moved = 0;
+
+    // The glass wins over everything behind it: if the press landed on a lit
+    // screen, it belongs to the operating system, not to the model.
+    const p = screenPoint(event);
+    if (p) {
+      screenArmed = true;
+      armed = null;
+      shell.pointerDown(p.x, p.y);
+      return;
+    }
+    screenArmed = false;
     armed = pick(event)?.object.userData.button ?? null;
   }
 
@@ -390,22 +495,52 @@ export function createDesktopStage({ renderer }) {
       -((event.clientY - rect.top) / rect.height) * 2 + 1
     );
 
+    // A press that began on the glass keeps feeding the shell, because that is
+    // what a window drag is made of. Off the glass the drag simply pauses:
+    // there is no raster coordinate out there to move it to.
+    if (screenArmed) {
+      const p = screenPoint(event);
+      if (p) shell.pointerMove(p.x, p.y);
+      return;
+    }
     if (armed !== null) {
       moved = Math.hypot(event.clientX - startX, event.clientY - startY);
       return;
     }
+
+    const p = screenPoint(event);
+    if (p) {
+      setHover(null);
+      // The shell reports whether the pointer is over something it would act
+      // on, which is the only hover signal a texture can give back.
+      const overControl = shell.pointerMove(p.x, p.y);
+      el.style.cursor = overControl ? 'pointer' : unlocked ? 'grab' : 'default';
+      return;
+    }
+    // Off the glass: drop any highlight the shell was showing.
+    shell.pointerLeave();
+
     // Raycasting every move is affordable here: there is exactly one hit zone.
     setHover(pick(event)?.object.userData.button ?? null);
   }
 
   function onPointerUp(event) {
     if (!enabled || !event.isPrimary) return;
+    if (screenArmed) {
+      screenArmed = false;
+      const p = screenPoint(event);
+      // The shell does its own same-region check, so a press that slid off a
+      // button cancels rather than firing the wrong one.
+      if (p) shell.pointerUp(p.x, p.y);
+      return;
+    }
     if (armed === 'power' && moved <= TAP_SLOP) throwSwitch();
     armed = null;
   }
 
   function onPointerLeave() {
     if (!enabled) return;
+    shell.pointerLeave();
     setHover(null);
     parallaxTarget.set(0, 0);
   }
@@ -422,6 +557,36 @@ export function createDesktopStage({ renderer }) {
 
   frame.add((dt) => {
     power.update(dt);
+
+    // Tracks the button every frame once shown, so it follows the tower through
+    // the camera drift, a free-camera orbit, or a tweak-panel rebuild.
+    if (hintT !== null) {
+      if (on) dismissHint();
+      else {
+        hintT += dt;
+        if (hintT >= HINT_AFTER) powerHint.classList.toggle('show', placeHint());
+      }
+    }
+    // One repaint per frame at most, and only when something actually changed.
+    shell.tick();
+
+    // The overlay re-derives its corners every frame from the same mesh and
+    // camera the renderer uses, so it tracks the tube through camera moves,
+    // window drags and the monitor's own tilt without being told about any
+    // of them.
+    const web = on && bootT === null ? shell.webTarget() : null;
+    if (web) {
+      webFrame.setSrc(web.url);
+      webFrame.update({
+        THREE, camera, canvas: el,
+        mesh: screen.mesh,
+        rect: web.rect,
+        zoom: web.zoom,
+        raster: { width: screen.width, height: screen.height },
+      });
+    } else {
+      webFrame.hide();
+    }
 
     /**
      * The boot.
@@ -444,7 +609,16 @@ export function createDesktopStage({ renderer }) {
 
       if (bootT >= (on ? BOOT_DELAY : 0)) {
         if (raw >= 1) {
-          screen.redraw(on ? drawOn : drawOff);
+          // The boot ends on the desktop, which is the whole point of booting.
+          if (on) {
+            shell.attach(screen);
+          } else {
+            // Powering off closes everything and silences the music, so the
+            // next boot comes up on a clean desktop rather than mid-song.
+            shell.detach();
+            shell.reset();
+            screen.redraw(drawOff);
+          }
           bootT = null;
         } else {
           screen.redraw((ctx, w, h) => drawBoot(ctx, w, h, k));
@@ -514,6 +688,7 @@ export function createDesktopStage({ renderer }) {
 
     activate() {
       enabled = true;
+      armHint();
       // The machine kept running while the other stage was on screen, so if it
       // is on, its fan comes back with it.
       if (on) audio.startHum(0.6);
@@ -522,6 +697,8 @@ export function createDesktopStage({ renderer }) {
 
     deactivate() {
       enabled = false;
+      webFrame.hide();
+      dismissHint();
       // Put the camera back before leaving, so switching away and returning
       // does not drop you somewhere under the desk with no memory of why.
       setUnlocked(false, false);

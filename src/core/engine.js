@@ -2,7 +2,7 @@
  * engine.js — renderer, frame loop, resize, and the stage swap. Models nothing.
  *
  * The engine deliberately does NOT own a scene or a camera. The page shows two
- * completely different subjects — an iPod you orbit freely, and a desktop PC
+ * different subjects — today a desktop PC
  * photographed on a desk — and they disagree about almost everything a camera
  * cares about, most importantly the near plane (see below). So each stage
  * brings its own, and `setStage` decides which one the loop draws.
@@ -32,7 +32,7 @@ export function createEngine({ canvas, antialias = true } = {}) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.3;
   // Shadow mapping is deliberately OFF. Neither stage has a shadow-casting
-  // setup worth the cost: the iPod floats with no ground plane, and the desk
+  // setup worth the cost: the desk
   // scene gets its contact shadows painted into textures instead. See README.
   renderer.shadowMap.enabled = false;
   renderer.autoClear = false;
@@ -50,7 +50,7 @@ export function createEngine({ canvas, antialias = true } = {}) {
   /**
    * Swap the active stage.
    *
-   * Stages are built once and kept alive, so switching back finds the iPod
+   * Stages are built once and kept alive, so switching back finds a scene
    * exactly where it was left. `deactivate` is where a stage drops its
    * per-frame subscriptions, which is what keeps the inactive one free.
    */

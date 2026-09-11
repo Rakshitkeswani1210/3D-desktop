@@ -9,23 +9,17 @@
  * the module with a cache-busting query so an edit shows up without touching
  * the server.
  *
- * With two unrelated scenes in the project, the inspector carries BOTH lighting
- * setups and swaps to whichever the selected part belongs to. A CRT under the
- * iPod's cold studio rig looks like a fault that isn't there — and the near
- * plane has to move with it, since the two scenes disagree about it by a factor
- * of six (see core/engine.js and theme/desk-spec.js).
+ * The inspector uses the desk's own room lighting, so a part looks here the way
+ * it looks in the scene. It used to carry a second studio rig for the iPod and
+ * swap between them; with one scene left, there is nothing to swap.
  */
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/OrbitControls.js';
 import { createEngine } from './core/engine.js';
-import { createEnvironment } from './core/environment.js';
-import { createLighting } from './core/lighting.js';
 import { createRoomEnvironment, createRoomLighting } from './core/room-env.js';
-import { createBackdrop } from './theme/backdrop.js';
 import { createRoomBackdrop } from './theme/room.js';
-import { applyFinish, finishIds, FINISHES } from './theme/palette.js';
-import { FRAMING, u } from './theme/spec.js';
+import { FRAMING } from './theme/desk-spec.js';
 import { COMPONENTS, ids, byStage, load } from './registry.js';
 import { disposeTree } from './lib/dispose.js';
 import { SHARED_MATERIALS } from './theme/shared-materials.js';
@@ -38,33 +32,15 @@ scene.background = null;
 const camera = new THREE.PerspectiveCamera(32, 1, 3, 1600);
 
 /**
- * Both worlds, built once and toggled.
- *
- * createEnvironment and createRoomEnvironment each assign scene.environment,
- * so the texture is read back straight after the call and kept. Both PMREM
- * targets stay resident — two 256px cubemaps, and swapping is then a field
- * assignment rather than a rebuild every time you click a part.
+ * The world every part is inspected in: the desk's room environment and its
+ * lighting, so a part reads here the way it reads in the scene.
  */
-createEnvironment(renderer, scene);
-const ipodEnv = scene.environment;
 createRoomEnvironment(renderer, scene);
-const deskEnv = scene.environment;
-
-const WORLDS = {
-  iPod: {
-    env: ipodEnv,
-    lights: Object.values(createLighting(scene)),
-    backdrop: createBackdrop(),
-    near: 3,
-    groundY: -u(60),
-  },
-  Desktop: {
-    env: deskEnv,
-    lights: Object.values(createRoomLighting(scene)),
-    backdrop: createRoomBackdrop(),
-    near: 0.5,
-    groundY: 0,
-  },
+const WORLD = {
+  lights: Object.values(createRoomLighting(scene)),
+  backdrop: createRoomBackdrop(),
+  near: 0.5,
+  groundY: 0,
 };
 
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -82,7 +58,7 @@ scene.add(grid);
 
 // One stage, whose backdrop is swapped as parts change. The engine only ever
 // knows about this object.
-const stage = { scene, camera, backdrop: WORLDS.iPod.backdrop };
+const stage = { scene, camera, backdrop: WORLD.backdrop };
 engine.setStage(stage);
 
 let currentId = new URLSearchParams(location.search).get('part') || ids()[0];
@@ -119,16 +95,8 @@ async function show(id, fresh = false) {
     disposeTree(child, SHARED_MATERIALS);
   }
 
-  // Swap worlds BEFORE building, so anything that samples the environment at
-  // construction sees the right one.
-  const world = WORLDS[COMPONENTS[id].stage] ?? WORLDS.iPod;
-  scene.environment = world.env;
-  for (const w of Object.values(WORLDS)) {
-    w.lights.forEach((l) => (l.visible = w === world));
-  }
-  stage.backdrop = world.backdrop;
-  grid.position.y = world.groundY;
-  camera.near = world.near;
+  grid.position.y = WORLD.groundY;
+  camera.near = WORLD.near;
 
   const mod = await load(id, fresh);
   const part = mod.create();
@@ -140,9 +108,8 @@ async function show(id, fresh = false) {
   camera.position.set(...cam.position);
   controls.target.set(...cam.target);
 
-  // Orbit limits from the part's own standoff, because the two scenes differ
-  // in scale by more than an order of magnitude: a clamp that suits a 6-unit
-  // iPod will not let you see a 150-unit desk at all.
+  // Orbit limits from the part's own standoff, so a keycap and a whole desk
+  // both get a sensible range without either being hardcoded.
   const standoff = camera.position.distanceTo(controls.target);
   controls.minDistance = standoff * 0.22;
   controls.maxDistance = standoff * 4;
@@ -195,14 +162,6 @@ document.getElementById('grid').addEventListener('click', (e) => {
   e.target.classList.toggle('on', grid.visible);
 });
 
-const finishBtn = document.getElementById('finish');
-let finishIndex = 0;
-const order = finishIds();
-finishBtn.textContent = FINISHES[order[0]].label;
-finishBtn.addEventListener('click', () => {
-  finishIndex = (finishIndex + 1) % order.length;
-  finishBtn.textContent = applyFinish(order[finishIndex]).label;
-});
 
 onFrame((dt) => {
   if (spinning) turntable.rotation.y += dt * 0.5;

@@ -1,0 +1,661 @@
+/*
+ * win95.css — Windows 95 UI primitives
+ * Extracted from the "Windows 95 Design System (Community)" Figma file
+ * (file key tBdtZJg51bvaPtGzpmpzgG).
+ *
+ * Everything is driven by two ideas:
+ *   1. a face colour (--w95-face) that never changes, and
+ *   2. a four-band bevel drawn entirely with inset box-shadows.
+ * There are no gradients, no blurs and no rounded corners anywhere.
+ */
+
+:root {
+  /* ---- Bevel band width -------------------------------------------------
+     The Figma file is drawn at 2x, so each bevel band is 2px.
+     Set --w95-b: 1px for authentic 96dpi Windows 95 metrics.          */
+  --w95-b: 2px;
+  --w95-b2: calc(var(--w95-b) * 2);
+
+  /* ---- Surface ---------------------------------------------------------- */
+  --w95-face: #c3c3c3;   /* every chrome surface: windows, buttons, bars   */
+  --w95-face-lit: #e3e3e3; /* pressed taskbar tab, hovered raised surface  */
+  --w95-white: #ffffff;  /* content wells, list backgrounds                */
+  --w95-black: #000000;  /* all body text                                  */
+
+  /* ---- Bevel bands, outer to inner -------------------------------------- */
+  --w95-hilight: #f0f0f0;  /* outer top-left  — the "lit edge"             */
+  --w95-light: #b1b1b1;    /* inner top-left                               */
+  --w95-shadow: #7e7e7e;   /* inner bottom-right                           */
+  --w95-dkshadow: #262626; /* outer bottom-right — the "cast edge"         */
+
+  /* ---- Accents ---------------------------------------------------------- */
+  --w95-titlebar: #02007f;        /* active title bar                      */
+  --w95-titlebar-off: #8e8e8e;    /* inactive title bar                    */
+  --w95-select: #000ea3;          /* menu / list selection                 */
+  --w95-desktop: #008282;         /* the teal                              */
+  --w95-disabled: #a0a0a0;        /* greyed-out text                       */
+
+  /* Minesweeper digits / general accent ramp */
+  --w95-blue-50: #001cf5;
+  --w95-green-100: #26b50f;
+  --w95-red-100: #eb3323;
+  --w95-red-200: #9c2054;
+
+  /* ---- Type -------------------------------------------------------------
+     W95FA is the pixel-accurate revival of the Win95 system font.
+     Drop the .woff2 next to this file and uncomment the @font-face below. */
+  --w95-font: "W95FA", "MS Sans Serif", "Microsoft Sans Serif", Tahoma, Geneva, Verdana, sans-serif;
+  --w95-fs: 24px;        /* body / labels     */
+  --w95-fs-ui: 26px;     /* menus, buttons    */
+  --w95-fs-title: 30px;  /* title bars        */
+}
+
+/* @font-face {
+  font-family: "W95FA";
+  src: url("./W95FA.woff2") format("woff2");
+  font-display: swap;
+} */
+
+/* ============================================================ FOUNDATION */
+
+.w95 {
+  font-family: var(--w95-font);
+  font-size: var(--w95-fs);
+  color: var(--w95-black);
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+  cursor: default;
+  user-select: none;
+}
+
+/* Win95 icons are bitmaps. Never let the browser smooth them. */
+.w95 img,
+.w95-icon-img {
+  image-rendering: pixelated;
+}
+
+/* ================================================================ BEVELS */
+
+/* Raised — buttons at rest, window frames, taskbar, group boxes. */
+.w95-raised {
+  background: var(--w95-face);
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-hilight),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-dkshadow),
+    inset var(--w95-b2) var(--w95-b2) 0 0 var(--w95-light),
+    inset calc(var(--w95-b2) * -1) calc(var(--w95-b2) * -1) 0 0 var(--w95-shadow);
+}
+
+/* Sunken — a pressed button or an active taskbar tab.
+   The raised bands, swapped corner for corner. */
+.w95-sunken {
+  background: var(--w95-face);
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-dkshadow),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-hilight),
+    inset var(--w95-b2) var(--w95-b2) 0 0 var(--w95-shadow),
+    inset calc(var(--w95-b2) * -1) calc(var(--w95-b2) * -1) 0 0 var(--w95-light);
+}
+
+/* Field — text inputs, checkboxes, list boxes, content wells.
+   NOT the same as .w95-sunken: the greys are one step softer, because a
+   field is a hole you look into, not a button you pushed. */
+.w95-field {
+  background: var(--w95-white);
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-shadow),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-hilight),
+    inset var(--w95-b2) var(--w95-b2) 0 0 var(--w95-dkshadow),
+    inset calc(var(--w95-b2) * -1) calc(var(--w95-b2) * -1) 0 0 var(--w95-light);
+}
+
+/* Well — a two-band groove. Status bar panels, the clock tray. */
+.w95-well {
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-shadow),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-hilight);
+}
+
+/* Groove separator — two stacked rules. Menus, toolbars, group boxes. */
+.w95-divider {
+  height: var(--w95-b2);
+  border-top: var(--w95-b) solid var(--w95-shadow);
+  border-bottom: var(--w95-b) solid var(--w95-hilight);
+  box-sizing: border-box;
+}
+
+/* Keyboard focus. Always this, never an outline colour. */
+.w95-focus {
+  outline: 1px dashed var(--w95-black);
+  outline-offset: calc(var(--w95-b) * -2);
+}
+
+/* ================================================================ WINDOW */
+
+.w95-desktop {
+  background: var(--w95-desktop);
+  min-height: 100%;
+  font-family: var(--w95-font);
+}
+
+.w95-window {
+  background: var(--w95-face);
+  padding: var(--w95-b2);
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-hilight),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-dkshadow),
+    inset var(--w95-b2) var(--w95-b2) 0 0 var(--w95-light),
+    inset calc(var(--w95-b2) * -1) calc(var(--w95-b2) * -1) 0 0 var(--w95-shadow);
+}
+
+.w95-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 4px 5px 8px;
+  background: var(--w95-titlebar);
+  color: var(--w95-white);
+  font-size: var(--w95-fs-title);
+}
+
+.w95-titlebar.is-inactive {
+  background: var(--w95-titlebar-off);
+}
+
+.w95-titlebar-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.w95-titlebar-buttons {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Title bar buttons are square, raised, and 32px at 2x. */
+.w95-titlebar-btn {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: 0;
+  padding: 0;
+  background: var(--w95-face);
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-hilight),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-dkshadow),
+    inset var(--w95-b2) var(--w95-b2) 0 0 var(--w95-light),
+    inset calc(var(--w95-b2) * -1) calc(var(--w95-b2) * -1) 0 0 var(--w95-shadow);
+}
+
+.w95-titlebar-btn:active {
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-dkshadow),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-hilight),
+    inset var(--w95-b2) var(--w95-b2) 0 0 var(--w95-shadow),
+    inset calc(var(--w95-b2) * -1) calc(var(--w95-b2) * -1) 0 0 var(--w95-light);
+}
+
+/* Glyphs, drawn as boxes so they stay crisp at any zoom. */
+.w95-titlebar-btn::before,
+.w95-titlebar-btn::after {
+  content: "";
+  position: absolute;
+  background: var(--w95-black);
+}
+
+.w95-titlebar-btn[data-glyph="minimize"]::before {
+  width: 12px; height: 3px;
+  left: 8px; bottom: 8px;
+}
+
+.w95-titlebar-btn[data-glyph="maximize"]::before {
+  width: 16px; height: 13px;
+  left: 7px; top: 8px;
+  background: transparent;
+  border: 2px solid var(--w95-black);
+  border-top-width: 4px;
+}
+
+.w95-titlebar-btn[data-glyph="close"]::before,
+.w95-titlebar-btn[data-glyph="close"]::after {
+  width: 16px; height: 3px;
+  left: 8px; top: 14px;
+}
+.w95-titlebar-btn[data-glyph="close"]::before { transform: rotate(45deg); }
+.w95-titlebar-btn[data-glyph="close"]::after  { transform: rotate(-45deg); }
+
+/* Menu bar: File Edit View Help. Sits directly under the title bar. */
+.w95-menubar {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  height: 46px;
+  padding: 0 16px;
+  font-size: var(--w95-fs-ui);
+}
+
+.w95-menubar > * {
+  padding: 2px 4px;
+  cursor: default;
+}
+
+.w95-menubar > *:hover,
+.w95-menubar > *[aria-expanded="true"] {
+  background: var(--w95-select);
+  color: var(--w95-white);
+}
+
+/* The white area a window's content lives in. */
+.w95-content {
+  background: var(--w95-white);
+  padding: 16px;
+  overflow: auto;
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-shadow),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-hilight),
+    inset var(--w95-b2) var(--w95-b2) 0 0 var(--w95-dkshadow),
+    inset calc(var(--w95-b2) * -1) calc(var(--w95-b2) * -1) 0 0 var(--w95-light);
+}
+
+/* A dialog's body is face-coloured, not white — no content well. */
+.w95-dialog-body {
+  padding: 24px 32px;
+  display: flex;
+  gap: 24px;
+}
+
+.w95-dialog-actions {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  padding: 0 0 16px;
+}
+
+.w95-statusbar {
+  display: flex;
+  gap: 4px;
+  height: 34px;
+  margin-top: var(--w95-b2);
+}
+
+.w95-statusbar-panel {
+  display: flex;
+  align-items: center;
+  padding: 0 9px;
+  font-size: var(--w95-fs);
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-shadow),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-hilight);
+}
+
+/* =============================================================== CONTROLS */
+
+.w95-btn {
+  min-width: 147px;
+  height: 48px;
+  padding: 0 16px;
+  border: 0;
+  font-family: var(--w95-font);
+  font-size: var(--w95-fs);
+  color: var(--w95-black);
+  background: var(--w95-face);
+  cursor: default;
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-hilight),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-dkshadow),
+    inset var(--w95-b2) var(--w95-b2) 0 0 var(--w95-light),
+    inset calc(var(--w95-b2) * -1) calc(var(--w95-b2) * -1) 0 0 var(--w95-shadow);
+}
+
+/* The label shifts down-right by one band when pressed. That shift is
+   what sells the click — do not skip it. */
+.w95-btn:active:not(:disabled) {
+  padding: var(--w95-b) 16px 0 calc(16px + var(--w95-b));
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-dkshadow),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-hilight),
+    inset var(--w95-b2) var(--w95-b2) 0 0 var(--w95-shadow),
+    inset calc(var(--w95-b2) * -1) calc(var(--w95-b2) * -1) 0 0 var(--w95-light);
+}
+
+.w95-btn:focus-visible {
+  outline: 1px dashed var(--w95-black);
+  outline-offset: calc(var(--w95-b) * -3);
+}
+
+/* The default button — the one Enter triggers — wears a hard black ring. */
+.w95-btn.is-default {
+  border: var(--w95-b) solid var(--w95-black);
+}
+
+.w95-btn:disabled {
+  color: var(--w95-disabled);
+  text-shadow: 1px 1px 0 var(--w95-hilight);
+}
+
+/* Small square icon button: toolbars, title bars, spinners. */
+.w95-icon-btn {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  min-width: 0;
+}
+
+.w95-checkbox,
+.w95-radio-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--w95-fs-ui);
+}
+
+.w95-checkbox input[type="checkbox"] {
+  appearance: none;
+  margin: 0;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  background: var(--w95-white);
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-shadow),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-hilight),
+    inset var(--w95-b2) var(--w95-b2) 0 0 var(--w95-dkshadow),
+    inset calc(var(--w95-b2) * -1) calc(var(--w95-b2) * -1) 0 0 var(--w95-light);
+}
+
+/* A staircase tick, not a font glyph — Win95's check is pixel art.
+   Eight 1x3 bars on a 14-unit grid, traced from Figma node 73:7055. */
+.w95-checkbox input[type="checkbox"]:checked {
+  background-image: url('data:image/svg+xml;utf8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 14 14" shape-rendering="crispEdges"%3E%3Cpath fill="black" d="M3 6h1v3H3zM4 7h1v3H4zM5 8h1v3H5zM6 7h1v3H6zM7 6h1v3H7zM8 5h1v3H8zM9 4h1v3H9zM10 3h1v3h-1z"/%3E%3C/svg%3E');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 100% 100%;
+}
+
+.w95-radio-row input[type="radio"] {
+  appearance: none;
+  margin: 0;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--w95-white);
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-shadow),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-hilight);
+}
+
+.w95-radio-row input[type="radio"]:checked {
+  background:
+    radial-gradient(circle, var(--w95-black) 0 4px, transparent 4px) var(--w95-white);
+}
+
+.w95-input,
+.w95-select {
+  height: 44px;
+  padding: 0 8px;
+  border: 0;
+  font-family: var(--w95-font);
+  font-size: var(--w95-fs);
+  color: var(--w95-black);
+  background: var(--w95-white);
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-shadow),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-hilight),
+    inset var(--w95-b2) var(--w95-b2) 0 0 var(--w95-dkshadow),
+    inset calc(var(--w95-b2) * -1) calc(var(--w95-b2) * -1) 0 0 var(--w95-light);
+}
+
+.w95-input:focus,
+.w95-select:focus {
+  outline: 0;
+}
+
+.w95-input::selection {
+  background: var(--w95-select);
+  color: var(--w95-white);
+}
+
+/* Group box — a raised frame with the legend notched into the top rule. */
+.w95-group {
+  border: 0;
+  margin: 0;
+  padding: 24px 16px 16px;
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-shadow),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-hilight);
+}
+
+.w95-group > legend {
+  padding: 0 8px;
+  font-size: var(--w95-fs);
+}
+
+/* ================================================================== MENUS */
+
+.w95-menu {
+  background: var(--w95-face);
+  padding: var(--w95-b);
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-hilight),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-dkshadow),
+    inset var(--w95-b2) var(--w95-b2) 0 0 var(--w95-light),
+    inset calc(var(--w95-b2) * -1) calc(var(--w95-b2) * -1) 0 0 var(--w95-shadow);
+}
+
+.w95-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 44px;
+  padding: 0 12px;
+  font-size: var(--w95-fs-ui);
+  white-space: nowrap;
+}
+
+/* Start-menu top level: taller, with 56px icons. */
+.w95-menu-item.is-large {
+  height: 72px;
+  gap: 20px;
+  padding: 0 12px 0 21px;
+}
+
+.w95-menu-item:hover,
+.w95-menu-item.is-selected {
+  background: var(--w95-select);
+  color: var(--w95-white);
+}
+
+.w95-menu-item[aria-disabled="true"] {
+  color: var(--w95-disabled);
+  text-shadow: 1px 1px 0 var(--w95-hilight);
+  background: transparent;
+}
+
+.w95-menu-item-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+}
+
+.w95-menu-item.is-large .w95-menu-item-icon {
+  width: 56px;
+  height: 56px;
+}
+
+/* Submenu arrow, pushed to the right edge. */
+.w95-menu-item-arrow {
+  margin-left: auto;
+  width: 0;
+  height: 0;
+  border-left: 8px solid currentColor;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+}
+
+.w95-menu-sep {
+  height: var(--w95-b2);
+  margin: var(--w95-b) 0;
+  border-top: var(--w95-b) solid var(--w95-shadow);
+  border-bottom: var(--w95-b) solid var(--w95-hilight);
+  box-sizing: border-box;
+}
+
+/* ================================================================ TASKBAR */
+
+.w95-taskbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 66px;
+  padding: 8px;
+  background: var(--w95-face);
+  /* Only a top highlight — the taskbar is not a full bevel. */
+  box-shadow: inset 0 var(--w95-b) 0 0 var(--w95-hilight);
+}
+
+.w95-taskbar-programs {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+.w95-start-btn {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 120px;
+  height: 50px;
+  padding: 0 8px;
+  border: 0;
+  flex-shrink: 0;
+  font-family: var(--w95-font);
+  font-size: var(--w95-fs-ui);
+  font-weight: 700;
+  background: var(--w95-face);
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-hilight),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-dkshadow),
+    inset var(--w95-b2) var(--w95-b2) 0 0 var(--w95-light),
+    inset calc(var(--w95-b2) * -1) calc(var(--w95-b2) * -1) 0 0 var(--w95-shadow);
+}
+
+.w95-start-btn.is-open,
+.w95-start-btn:active {
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-dkshadow),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-hilight),
+    inset var(--w95-b2) var(--w95-b2) 0 0 var(--w95-shadow),
+    inset calc(var(--w95-b2) * -1) calc(var(--w95-b2) * -1) 0 0 var(--w95-light);
+}
+
+.w95-task-btn {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 270px;
+  height: 50px;
+  padding: 0 8px;
+  border: 0;
+  font-family: var(--w95-font);
+  font-size: var(--w95-fs-ui);
+  text-align: left;
+  background: var(--w95-face);
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-hilight),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-dkshadow),
+    inset var(--w95-b2) var(--w95-b2) 0 0 var(--w95-light),
+    inset calc(var(--w95-b2) * -1) calc(var(--w95-b2) * -1) 0 0 var(--w95-shadow);
+}
+
+/* The focused window's tab is held down, on a lighter face. */
+.w95-task-btn.is-active {
+  background: var(--w95-face-lit);
+  font-weight: 700;
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-dkshadow),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-hilight),
+    inset var(--w95-b2) var(--w95-b2) 0 0 var(--w95-shadow),
+    inset calc(var(--w95-b2) * -1) calc(var(--w95-b2) * -1) 0 0 var(--w95-light);
+}
+
+.w95-tray {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 7px;
+  flex-shrink: 0;
+  font-size: var(--w95-fs);
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-shadow),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-hilight);
+}
+
+/* ========================================================== DESKTOP ICONS */
+
+.w95-desktop-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 122px;
+  padding: 4px;
+  text-align: center;
+  color: var(--w95-white);
+  font-size: 20px;
+  line-height: 1.15;
+}
+
+.w95-desktop-icon img {
+  width: 56px;
+  height: 56px;
+}
+
+/* Selection: label inverts, icon is tinted. */
+.w95-desktop-icon.is-selected .w95-desktop-icon-label {
+  background: var(--w95-select);
+  outline: 1px dotted var(--w95-white);
+}
+
+/* =============================================================== SCROLLBAR */
+
+.w95-scroll {
+  scrollbar-width: auto;
+}
+
+.w95-scroll::-webkit-scrollbar {
+  width: 32px;
+  height: 32px;
+}
+
+/* The trough is a 50% dither of face on white — Win95 drew it as a
+   checkerboard, which a 2px conic gradient reproduces exactly. */
+.w95-scroll::-webkit-scrollbar-track {
+  background:
+    repeating-conic-gradient(var(--w95-face) 0 25%, var(--w95-white) 0 50%)
+    0 0 / 4px 4px;
+}
+
+.w95-scroll::-webkit-scrollbar-thumb {
+  background: var(--w95-face);
+  box-shadow:
+    inset var(--w95-b) var(--w95-b) 0 0 var(--w95-hilight),
+    inset calc(var(--w95-b) * -1) calc(var(--w95-b) * -1) 0 0 var(--w95-dkshadow),
+    inset var(--w95-b2) var(--w95-b2) 0 0 var(--w95-light),
+    inset calc(var(--w95-b2) * -1) calc(var(--w95-b2) * -1) 0 0 var(--w95-shadow);
+}
+
+.w95-scroll::-webkit-scrollbar-corner {
+  background: var(--w95-face);
+}

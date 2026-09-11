@@ -262,11 +262,14 @@ export function frontPanelTexture() {
     ctx.lineWidth = 3;
     ctx.strokeRect(1.5, 1.5, w - 3, h - 3);
 
+    // An instruction rather than a brand: the power button is the one thing on
+    // this machine a visitor has to find on their own, and a label beats a
+    // wordmark for that.
     ctx.fillStyle = 'rgba(70,74,80,0.75)';
     ctx.font = '600 17px "Helvetica Neue", Helvetica, Arial, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('DIMENSION', w / 2, h * 0.84);
+    ctx.fillText('Press to turn ON', w / 2, h * 0.84);
   });
 }
 
@@ -465,7 +468,7 @@ export function drawOn(ctx, w, h) {
  * a hole in the bezel. The scanline pitch is deliberately coarse — at the
  * texture's real size on screen a 1px pitch aliases into a moiré.
  */
-function crtGrille(ctx, w, h, amount) {
+export function crtGrille(ctx, w, h, amount) {
   ctx.save();
   ctx.globalAlpha = 0.055 * amount;
   ctx.fillStyle = '#000000';
@@ -767,7 +770,7 @@ export function towerBackTexture() {
     ctx.fillText('MODEL DM-4600', 50, h - 96);
     ctx.font = '400 12px "Helvetica Neue", Helvetica, Arial, sans-serif';
     ctx.fillText('100-240V ~ 50/60Hz', 50, h - 76);
-    ctx.fillText('MADE IN MALAYSIA', 50, h - 58);
+    ctx.fillText('MADE IN U.S.A.', 50, h - 58);
   });
 }
 

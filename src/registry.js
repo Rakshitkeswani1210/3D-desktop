@@ -2,26 +2,15 @@
  * registry.js — the one list of every component, for the part inspector.
  *
  * viewer.html reads from here, so adding a part means adding exactly one entry
- * below and it shows up in the sidebar. The scenes themselves compose their
- * parts directly (objects/IPod.js and objects/desktop/Desktop.js), because a
- * scene needs the composed object rather than a list of pieces.
+ * below and it shows up in the sidebar. The scene itself composes its parts
+ * directly (objects/desktop/Desktop.js), because a scene needs the composed
+ * object rather than a list of pieces.
  *
  * `load` is a dynamic import so the viewer can re-import a module with a
  * cache-busting query string and pick up an edit without a server restart.
  */
 
 export const COMPONENTS = {
-  /* ── the iPod ────────────────────────────────────────────────────── */
-  ipod: { label: 'iPod', stage: 'iPod', path: './objects/IPod.js' },
-
-  // The parts. IPod.js composes them, so none stands alone in the scene —
-  // they are listed so the inspector can show each in isolation, which is the
-  // only sane way to debug a 2 mm bevel.
-  body: { label: 'Body', stage: 'iPod', path: './objects/Body.js' },
-  screen: { label: 'Screen', stage: 'iPod', path: './objects/Screen.js' },
-  'click-wheel': { label: 'Click Wheel', stage: 'iPod', path: './objects/ClickWheel.js' },
-  ports: { label: 'Ports', stage: 'iPod', path: './objects/Ports.js' },
-
   /* ── the desktop ─────────────────────────────────────────────────── */
   desktop: { label: 'Desktop', stage: 'Desktop', path: './objects/desktop/Desktop.js' },
   desk: { label: 'Desk', stage: 'Desktop', path: './objects/desktop/Desk.js' },

@@ -1,8 +1,8 @@
 /**
  * Desktop.js — composes the desk, the monitor, the tower and the keyboard.
  *
- * Assembles and nothing more, in the same spirit as objects/IPod.js: it decides
- * where things stand and forwards the handles the stage needs. Every actual
+ * Assembles and nothing more: it decides where things stand and forwards the
+ * handles the stage needs. Every actual
  * dimension and position lives in theme/desk-spec.js, and each part knows only
  * how to build itself standing at the origin on y = 0.
  */

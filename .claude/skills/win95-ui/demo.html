@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>win95-ui — component reference</title>
+<link rel="stylesheet" href="./win95.css">
+<style>
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--w95-desktop); font-family: var(--w95-font); }
+  .sheet { padding: 32px; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }
+  .row { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+  .stack { display: flex; flex-direction: column; gap: 16px; }
+  .files { display: flex; gap: 40px; flex-wrap: wrap; }
+  .file { width: 122px; text-align: center; font-size: 20px; }
+  .file img { width: 56px; height: 56px; image-rendering: pixelated; display: block; margin: 0 auto 8px; }
+  .taskbar-wrap { position: fixed; left: 0; right: 0; bottom: 0; }
+</style>
+</head>
+<body class="w95">
+
+<div class="sheet">
+
+  <!-- Window -->
+  <div class="w95-window" style="width: 640px">
+    <div class="w95-titlebar">
+      <span class="w95-titlebar-title">
+        <img src="icons/png/computer-system.png" width="24" height="24" alt="">My Computer
+      </span>
+      <span class="w95-titlebar-buttons">
+        <button class="w95-titlebar-btn" data-glyph="minimize" aria-label="Minimize"></button>
+        <button class="w95-titlebar-btn" data-glyph="maximize" aria-label="Maximize"></button>
+        <button class="w95-titlebar-btn" data-glyph="close" aria-label="Close"></button>
+      </span>
+    </div>
+    <nav class="w95-menubar">
+      <span><u>F</u>ile</span><span><u>E</u>dit</span><span><u>V</u>iew</span><span><u>H</u>elp</span>
+    </nav>
+    <div class="w95-content w95-scroll" style="height: 260px">
+      <div class="files">
+        <div class="file"><img src="icons/png/drive-floppy.png" alt="">3½ Floppy (A:)</div>
+        <div class="file"><img src="icons/png/drive-hard-disk.png" alt="">Windows 95 (C:)</div>
+        <div class="file"><img src="icons/png/drive-cdrom.png" alt="">CD-ROM (D:)</div>
+        <div class="file"><img src="icons/png/folder-printers.png" alt="">Printers</div>
+        <div class="file"><img src="icons/png/settings-gear.png" alt="">Control Panel</div>
+        <div class="file"><img src="icons/png/network-neighborhood.png" alt="">Network</div>
+      </div>
+      <div style="height: 120px"></div>
+      <p style="margin:0">Scroll — the trough is a dithered checkerboard.</p>
+    </div>
+    <div class="w95-statusbar">
+      <div class="w95-statusbar-panel" style="flex:1">6 object(s)</div>
+      <div class="w95-statusbar-panel" style="flex:1"></div>
+    </div>
+  </div>
+
+  <!-- Dialog -->
+  <div class="w95-window" style="width: 620px">
+    <div class="w95-titlebar">
+      <span class="w95-titlebar-title">Internet Explorer</span>
+      <span class="w95-titlebar-buttons">
+        <button class="w95-titlebar-btn" data-glyph="close" aria-label="Close"></button>
+      </span>
+    </div>
+    <div class="w95-dialog-body">
+      <img src="icons/dialog/msgbox-question.png" width="56" height="56" alt="Question"
+           style="image-rendering:pixelated;flex-shrink:0">
+      <div class="stack">
+        <p style="margin:0">Internet Explorer 3.0 is not currently your default browser.<br>
+          Would you like to make it your default browser?</p>
+        <label class="w95-checkbox"><input type="checkbox" checked> Always perform this check</label>
+        <label class="w95-checkbox"><input type="checkbox"> Unchecked, for comparison</label>
+      </div>
+    </div>
+    <div class="w95-dialog-actions">
+      <button class="w95-btn is-default"><u>Y</u>es</button>
+      <button class="w95-btn"><u>N</u>o</button>
+    </div>
+  </div>
+
+  <!-- The four message-box icons -->
+  <div class="w95-window" style="width: 380px">
+    <div class="w95-titlebar">
+      <span class="w95-titlebar-title">Message box icons</span>
+      <span class="w95-titlebar-buttons">
+        <button class="w95-titlebar-btn" data-glyph="close" aria-label="Close"></button>
+      </span>
+    </div>
+    <div class="w95-dialog-body">
+      <div class="files" style="gap:24px">
+        <div class="file" style="width:76px"><img src="icons/dialog/msgbox-error.png" alt="">Error</div>
+        <div class="file" style="width:76px"><img src="icons/dialog/msgbox-warning.png" alt="">Warning</div>
+        <div class="file" style="width:76px"><img src="icons/dialog/msgbox-info.png" alt="">Info</div>
+        <div class="file" style="width:76px"><img src="icons/dialog/msgbox-question.png" alt="">Question</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Start menu -->
+  <div class="w95-menu" style="width: 316px">
+    <div class="w95-menu-item is-large is-selected">
+      <img class="w95-menu-item-icon" src="icons/png/folder-programs.png" alt="">
+      <span><u>P</u>rograms</span><i class="w95-menu-item-arrow"></i>
+    </div>
+    <div class="w95-menu-item is-large">
+      <img class="w95-menu-item-icon" src="icons/png/folder-open-documents.png" alt="">
+      <span><u>D</u>ocuments</span><i class="w95-menu-item-arrow"></i>
+    </div>
+    <div class="w95-menu-item is-large">
+      <img class="w95-menu-item-icon" src="icons/png/settings-gear.png" alt="">
+      <span><u>S</u>ettings</span><i class="w95-menu-item-arrow"></i>
+    </div>
+    <div class="w95-menu-item is-large">
+      <img class="w95-menu-item-icon" src="icons/png/find-file.png" alt="">
+      <span><u>F</u>ind</span><i class="w95-menu-item-arrow"></i>
+    </div>
+    <div class="w95-menu-item is-large">
+      <img class="w95-menu-item-icon" src="icons/png/help-book.png" alt=""><span><u>H</u>elp</span>
+    </div>
+    <div class="w95-menu-sep"></div>
+    <div class="w95-menu-item is-large">
+      <img class="w95-menu-item-icon" src="icons/png/computer-system.png" alt=""><span>Sh<u>u</u>t Down</span>
+    </div>
+  </div>
+
+  <!-- Submenu + controls -->
+  <div class="stack">
+    <div class="w95-menu" style="width: 300px">
+      <div class="w95-menu-item">
+        <img class="w95-menu-item-icon" src="icons/png/document-text.png" alt=""><span>Notepad</span>
+      </div>
+      <div class="w95-menu-item is-selected">
+        <img class="w95-menu-item-icon" src="icons/png/document-image.png" alt=""><span>Paint</span>
+      </div>
+      <div class="w95-menu-sep"></div>
+      <div class="w95-menu-item" aria-disabled="true">
+        <img class="w95-menu-item-icon" src="icons/png/document-system.png" alt=""><span>Disabled item</span>
+      </div>
+    </div>
+
+    <div class="w95-window" style="width: 460px">
+      <div class="w95-titlebar is-inactive">
+        <span class="w95-titlebar-title">Inactive window</span>
+        <span class="w95-titlebar-buttons">
+          <button class="w95-titlebar-btn" data-glyph="close" aria-label="Close"></button>
+        </span>
+      </div>
+      <div class="w95-dialog-body">
+        <div class="stack" style="width:100%">
+          <div class="row">
+            <button class="w95-btn">Normal</button>
+            <button class="w95-btn is-default">Default</button>
+          </div>
+          <div class="row">
+            <button class="w95-btn" disabled>Disabled</button>
+            <button class="w95-icon-btn w95-btn"></button>
+          </div>
+          <input class="w95-input" value="A text field" style="width:100%">
+          <label class="w95-radio-row"><input type="radio" name="r" checked> <span><u>S</u>hut down the computer?</span></label>
+          <label class="w95-radio-row"><input type="radio" name="r"> <span><u>R</u>estart the computer?</span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Desktop icons -->
+  <div class="stack">
+    <div class="w95-desktop-icon">
+      <img src="icons/png/computer-system.png" alt="">
+      <span class="w95-desktop-icon-label">My Computer</span>
+    </div>
+    <div class="w95-desktop-icon is-selected">
+      <img src="icons/png/recycle-bin-full.png" alt="">
+      <span class="w95-desktop-icon-label">Recycle Bin</span>
+    </div>
+    <div class="w95-desktop-icon">
+      <img src="icons/png/network-neighborhood.png" alt="">
+      <span class="w95-desktop-icon-label">Network Neighborhood</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="taskbar-wrap">
+  <div class="w95-taskbar">
+    <div class="w95-taskbar-programs">
+      <button class="w95-start-btn">
+        <img src="icons/png/windows-flag.png" width="32" height="32" alt=""> Start
+      </button>
+      <button class="w95-task-btn is-active">
+        <img src="icons/png/computer-system.png" width="32" height="32" alt=""> My Computer
+      </button>
+      <button class="w95-task-btn">
+        <img src="icons/png/document-text.png" width="32" height="32" alt=""> Untitled - Notepad
+      </button>
+    </div>
+    <div class="w95-tray">10:32AM</div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,10 +1,8 @@
 /**
  * desk-palette.js — the materials of the desktop scene.
  *
- * Kept apart from theme/palette.js because the two scenes share nothing: the
- * iPod is polished metal and gloss plastic under a studio rig, this is matte
- * injection-moulded ABS and satin oak under one warm lamp. There is no finish
- * toggle here, so unlike palette.js these are built once and never mutated.
+ * Matte injection-moulded ABS and satin oak under one warm lamp. There is no
+ * finish toggle, so these are built once and never mutated.
  *
  * One rule runs through all of it: nothing is `roughness: 0.1`. Every plastic
  * on a machine of this era was deliberately matte to hide mould flow lines, and

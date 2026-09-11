@@ -4,11 +4,14 @@
     {
       "name": "scenes",
       "runtimeExecutable": "python3",
-      "runtimeArgs": [
-        "serve.py",
-        "5174"
-      ],
-      "port": 5174
+      "runtimeArgs": [],
+      "port": 5174,
+      "autoPort": true
+    },
+    {
+      "name": "scenes (attach)",
+      "url": "http://localhost:5176",
+      "port": 5176
     }
   ]
 }

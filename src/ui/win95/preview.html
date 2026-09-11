@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Win95 desktop — screen preview</title>
+<style>
+  body { margin: 0; background: #1a1f22; color: #cfd6d3;
+         font: 13px ui-monospace, Menlo, monospace; padding: 20px; }
+  h1 { font-size: 14px; font-weight: 600; margin: 0 0 4px; }
+  p  { margin: 0 0 16px; color: #8d9895; }
+  canvas { display: block; image-rendering: pixelated; border: 1px solid #000; cursor: default; }
+  .controls { margin-bottom: 16px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+  code { color: #b9c6c2; }
+</style>
+</head>
+<body>
+<h1>Windows 95 desktop — the CRT picture at 1:1</h1>
+<p>800&times;600, the raster's real size, driven by the same
+   <code>shell.js</code> the tube runs. It is live: click <b>My Music</b>, then click a track.</p>
+
+<div class="controls">
+  <label><input type="checkbox" id="grille" checked> CRT grille</label>
+  <label><input type="checkbox" id="zoom"> 2&times;</label>
+  <span id="status"></span>
+</div>
+
+<canvas id="c" width="800" height="600"></canvas>
+
+<script type="importmap">
+  {
+    "imports": {
+      "three": "../../../vendor/three/three.module.js",
+      "three/addons/": "../../../vendor/three/addons/"
+    }
+  }
+</script>
+<script type="module">
+import { createShell } from './shell.js';
+import { crtGrille } from '../../theme/desk-textures.js';
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const $grille = document.getElementById('grille');
+const $zoom = document.getElementById('zoom');
+const $status = document.getElementById('status');
+
+const shell = createShell({
+  width: canvas.width,
+  height: canvas.height,
+  overlay: (c2, w, h) => { if ($grille.checked) crtGrille(c2, w, h, 1); },
+  onShutDown: () => { $status.textContent = 'Shut Down chosen — the scene would power off here.'; },
+});
+
+// Stands in for the monitor's screen handle, which is all the shell needs.
+shell.attach({
+  redraw(fn) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    fn(ctx, canvas.width, canvas.height);
+  },
+});
+
+/** Page pixels -> raster pixels. */
+function toRaster(event) {
+  const r = canvas.getBoundingClientRect();
+  return {
+    x: ((event.clientX - r.left) / r.width) * canvas.width,
+    y: ((event.clientY - r.top) / r.height) * canvas.height,
+  };
+}
+
+// On window, not canvas, so a drag keeps tracking past the edge.
+window.addEventListener('pointermove', (e) => {
+  const p = toRaster(e);
+  canvas.style.cursor = shell.pointerMove(p.x, p.y) ? 'pointer' : 'default';
+});
+canvas.addEventListener('pointerdown', (e) => { const p = toRaster(e); shell.pointerDown(p.x, p.y); });
+window.addEventListener('pointerup', (e) => { const p = toRaster(e); shell.pointerUp(p.x, p.y); });
+canvas.addEventListener('pointerleave', () => shell.pointerLeave());
+
+$grille.addEventListener('change', () => shell.invalidate());
+$zoom.addEventListener('change', () => {
+  canvas.style.width = $zoom.checked ? '1600px' : '';
+  canvas.style.height = $zoom.checked ? '1200px' : '';
+});
+
+(function loop() { shell.tick(); requestAnimationFrame(loop); })();
+
+// For poking at from the console and from tests.
+window.__shell = shell;
+</script>
+</body>
+</html>

@@ -1,0 +1,421 @@
+{
+  "sources": {
+    "win95-set": {
+      "origin": "https://github.com/trapd00r/win95-winxp_icons",
+      "path_in_repo": "icons/w95_<n>.ico",
+      "license": "none declared; extracted Microsoft system assets",
+      "count": 72,
+      "note": "Ships numbered, not named. Names below are visual identification, not official."
+    },
+    "message-box": {
+      "origin": "https://commons.wikimedia.org/wiki/Category:Windows_95_icons",
+      "license": "Public domain (below threshold of originality)",
+      "count": 4,
+      "note": "Stored on Commons as ~500px nearest-neighbour blow-ups; reduced back to 32x32 with tools/pngshrink.py."
+    },
+    "internet-explorer": {
+      "origin": "https://github.com/trapd00r/win95-winxp_icons",
+      "path_in_repo": "icons/w98_msie1.ico",
+      "license": "none declared; extracted Microsoft system assets",
+      "count": 1,
+      "note": "A Windows 98 icon, not 95. IE shipped separately from Win95 and arrived bundled with OSR2, so the blue 'e' is period-correct for this desktop even though it is not in the 95 set."
+    }
+  },
+  "icons": {
+    "document-image": {
+      "file": "icons/png/document-image.png",
+      "source": "w95_1.ico",
+      "size": 32
+    },
+    "document-write": {
+      "file": "icons/png/document-write.png",
+      "source": "w95_2.ico",
+      "size": 32
+    },
+    "window-program": {
+      "file": "icons/png/window-program.png",
+      "source": "w95_3.ico",
+      "size": 32
+    },
+    "folder-closed": {
+      "file": "icons/png/folder-closed.png",
+      "source": "w95_4.ico",
+      "size": 32
+    },
+    "folder-open": {
+      "file": "icons/png/folder-open.png",
+      "source": "w95_5.ico",
+      "size": 32
+    },
+    "server": {
+      "file": "icons/png/server.png",
+      "source": "w95_6.ico",
+      "size": 32
+    },
+    "drive-floppy": {
+      "file": "icons/png/drive-floppy.png",
+      "source": "w95_7.ico",
+      "size": 32
+    },
+    "drive-hard-disk": {
+      "file": "icons/png/drive-hard-disk.png",
+      "source": "w95_8.ico",
+      "size": 32
+    },
+    "drive-generic": {
+      "file": "icons/png/drive-generic.png",
+      "source": "w95_9.ico",
+      "size": 32
+    },
+    "drive-network": {
+      "file": "icons/png/drive-network.png",
+      "source": "w95_10.ico",
+      "size": 32
+    },
+    "drive-network-offline": {
+      "file": "icons/png/drive-network-offline.png",
+      "source": "w95_11.ico",
+      "size": 32
+    },
+    "drive-cdrom": {
+      "file": "icons/png/drive-cdrom.png",
+      "source": "w95_12.ico",
+      "size": 32
+    },
+    "memory-chip": {
+      "file": "icons/png/memory-chip.png",
+      "source": "w95_13.ico",
+      "size": 32
+    },
+    "globe": {
+      "file": "icons/png/globe.png",
+      "source": "w95_14.ico",
+      "size": 32
+    },
+    "network-cable": {
+      "file": "icons/png/network-cable.png",
+      "source": "w95_15.ico",
+      "size": 32
+    },
+    "computer-shared": {
+      "file": "icons/png/computer-shared.png",
+      "source": "w95_16.ico",
+      "size": 32
+    },
+    "printer-paper": {
+      "file": "icons/png/printer-paper.png",
+      "source": "w95_17.ico",
+      "size": 32
+    },
+    "network-two-computers": {
+      "file": "icons/png/network-two-computers.png",
+      "source": "w95_18.ico",
+      "size": 32
+    },
+    "network-neighborhood": {
+      "file": "icons/png/network-neighborhood.png",
+      "source": "w95_19.ico",
+      "size": 32
+    },
+    "folder-programs": {
+      "file": "icons/png/folder-programs.png",
+      "source": "w95_20.ico",
+      "size": 32
+    },
+    "folder-open-documents": {
+      "file": "icons/png/folder-open-documents.png",
+      "source": "w95_21.ico",
+      "size": 32
+    },
+    "settings-gear": {
+      "file": "icons/png/settings-gear.png",
+      "source": "w95_22.ico",
+      "size": 32
+    },
+    "find-file": {
+      "file": "icons/png/find-file.png",
+      "source": "w95_23.ico",
+      "size": 32
+    },
+    "help-book": {
+      "file": "icons/png/help-book.png",
+      "source": "w95_24.ico",
+      "size": 32
+    },
+    "window-hourglass": {
+      "file": "icons/png/window-hourglass.png",
+      "source": "w95_25.ico",
+      "size": 32
+    },
+    "screensaver": {
+      "file": "icons/png/screensaver.png",
+      "source": "w95_26.ico",
+      "size": 32
+    },
+    "printer-grey": {
+      "file": "icons/png/printer-grey.png",
+      "source": "w95_27.ico",
+      "size": 32
+    },
+    "display-settings": {
+      "file": "icons/png/display-settings.png",
+      "source": "w95_28.ico",
+      "size": 32
+    },
+    "hand-document": {
+      "file": "icons/png/hand-document.png",
+      "source": "w95_29.ico",
+      "size": 32
+    },
+    "shortcut-badge": {
+      "file": "icons/png/shortcut-badge.png",
+      "source": "w95_30.ico",
+      "size": 32
+    },
+    "arrow-up": {
+      "file": "icons/png/arrow-up.png",
+      "source": "w95_31.ico",
+      "size": 32
+    },
+    "recycle-bin-empty": {
+      "file": "icons/png/recycle-bin-empty.png",
+      "source": "w95_32.ico",
+      "size": 32
+    },
+    "recycle-bin-full": {
+      "file": "icons/png/recycle-bin-full.png",
+      "source": "w95_33.ico",
+      "size": 32
+    },
+    "folder-network": {
+      "file": "icons/png/folder-network.png",
+      "source": "w95_34.ico",
+      "size": 32
+    },
+    "desk-lamp": {
+      "file": "icons/png/desk-lamp.png",
+      "source": "w95_35.ico",
+      "size": 32
+    },
+    "folder-tools": {
+      "file": "icons/png/folder-tools.png",
+      "source": "w95_36.ico",
+      "size": 32
+    },
+    "folder-themes": {
+      "file": "icons/png/folder-themes.png",
+      "source": "w95_37.ico",
+      "size": 32
+    },
+    "folder-printers": {
+      "file": "icons/png/folder-printers.png",
+      "source": "w95_38.ico",
+      "size": 32
+    },
+    "folder-fonts": {
+      "file": "icons/png/folder-fonts.png",
+      "source": "w95_39.ico",
+      "size": 32
+    },
+    "windows-flag": {
+      "file": "icons/png/windows-flag.png",
+      "source": "w95_40.ico",
+      "size": 32
+    },
+    "audio-cd": {
+      "file": "icons/png/audio-cd.png",
+      "source": "w95_41.ico",
+      "size": 32
+    },
+    "tree": {
+      "file": "icons/png/tree.png",
+      "source": "w95_42.ico",
+      "size": 32
+    },
+    "documents-stack": {
+      "file": "icons/png/documents-stack.png",
+      "source": "w95_43.ico",
+      "size": 32
+    },
+    "document-find": {
+      "file": "icons/png/document-find.png",
+      "source": "w95_44.ico",
+      "size": 32
+    },
+    "computer-find": {
+      "file": "icons/png/computer-find.png",
+      "source": "w95_45.ico",
+      "size": 32
+    },
+    "computer-system": {
+      "file": "icons/png/computer-system.png",
+      "source": "w95_46.ico",
+      "size": 32
+    },
+    "folder-tools-alt": {
+      "file": "icons/png/folder-tools-alt.png",
+      "source": "w95_47.ico",
+      "size": 32
+    },
+    "folder-printer-alt": {
+      "file": "icons/png/folder-printer-alt.png",
+      "source": "w95_48.ico",
+      "size": 32
+    },
+    "print-preview": {
+      "file": "icons/png/print-preview.png",
+      "source": "w95_49.ico",
+      "size": 32
+    },
+    "printer-network": {
+      "file": "icons/png/printer-network.png",
+      "source": "w95_50.ico",
+      "size": 32
+    },
+    "print-to-disk": {
+      "file": "icons/png/print-to-disk.png",
+      "source": "w95_51.ico",
+      "size": 32
+    },
+    "recycle-bin-document": {
+      "file": "icons/png/recycle-bin-document.png",
+      "source": "w95_52.ico",
+      "size": 32
+    },
+    "recycle-bin-folder": {
+      "file": "icons/png/recycle-bin-folder.png",
+      "source": "w95_53.ico",
+      "size": 32
+    },
+    "recycle-bin-file": {
+      "file": "icons/png/recycle-bin-file.png",
+      "source": "w95_54.ico",
+      "size": 32
+    },
+    "document-delete": {
+      "file": "icons/png/document-delete.png",
+      "source": "w95_55.ico",
+      "size": 32
+    },
+    "move-to-folder": {
+      "file": "icons/png/move-to-folder.png",
+      "source": "w95_56.ico",
+      "size": 32
+    },
+    "folder-rename": {
+      "file": "icons/png/folder-rename.png",
+      "source": "w95_57.ico",
+      "size": 32
+    },
+    "folder-properties": {
+      "file": "icons/png/folder-properties.png",
+      "source": "w95_58.ico",
+      "size": 32
+    },
+    "document-settings": {
+      "file": "icons/png/document-settings.png",
+      "source": "w95_59.ico",
+      "size": 32
+    },
+    "document-text": {
+      "file": "icons/png/document-text.png",
+      "source": "w95_60.ico",
+      "size": 32
+    },
+    "window-settings": {
+      "file": "icons/png/window-settings.png",
+      "source": "w95_61.ico",
+      "size": 32
+    },
+    "document-system": {
+      "file": "icons/png/document-system.png",
+      "source": "w95_62.ico",
+      "size": 32
+    },
+    "font-file": {
+      "file": "icons/png/font-file.png",
+      "source": "w95_63.ico",
+      "size": 32
+    },
+    "font-truetype": {
+      "file": "icons/png/font-truetype.png",
+      "source": "w95_64.ico",
+      "size": 32
+    },
+    "window-starting": {
+      "file": "icons/png/window-starting.png",
+      "source": "w95_65.ico",
+      "size": 32
+    },
+    "folder-error": {
+      "file": "icons/png/folder-error.png",
+      "source": "w95_66.ico",
+      "size": 32
+    },
+    "drive-copy-disk": {
+      "file": "icons/png/drive-copy-disk.png",
+      "source": "w95_67.ico",
+      "size": 32
+    },
+    "cd-media": {
+      "file": "icons/png/cd-media.png",
+      "source": "w95_68.ico",
+      "size": 32
+    },
+    "books": {
+      "file": "icons/png/books.png",
+      "source": "w95_69.ico",
+      "size": 32
+    },
+    "printer-plain": {
+      "file": "icons/png/printer-plain.png",
+      "source": "w95_70.ico",
+      "size": 32
+    },
+    "printer-network-paper": {
+      "file": "icons/png/printer-network-paper.png",
+      "source": "w95_71.ico",
+      "size": 32
+    },
+    "printer-to-disk": {
+      "file": "icons/png/printer-to-disk.png",
+      "source": "w95_72.ico",
+      "size": 32
+    },
+    "msgbox-error": {
+      "file": "icons/dialog/msgbox-error.png",
+      "source": "wikimedia-commons",
+      "size": 32
+    },
+    "msgbox-warning": {
+      "file": "icons/dialog/msgbox-warning.png",
+      "source": "wikimedia-commons",
+      "size": 32
+    },
+    "msgbox-info": {
+      "file": "icons/dialog/msgbox-info.png",
+      "source": "wikimedia-commons",
+      "size": 32
+    },
+    "msgbox-question": {
+      "file": "icons/dialog/msgbox-question.png",
+      "source": "wikimedia-commons",
+      "size": 32
+    },
+    "internet-explorer": {
+      "file": "icons/png/internet-explorer.png",
+      "source": "w98_msie1.ico",
+      "size": 32
+    },
+    "folder-pictures": {
+      "file": "icons/png/folder-pictures.png",
+      "source": "w98_directory_pictures.ico",
+      "size": 32
+    },
+    "notepad-pen": {
+      "file": "icons/png/notepad-pen.png",
+      "source": "w98_write_wordpad.ico",
+      "size": 32
+    }
+  }
+}
