@@ -1,4 +1,4 @@
-# Rakshit's First Desktop — an interactable 3D scene
+# Rakshit's Desktop — an interactable 3D scene
 
 A **2000s desktop PC** photographed on a wood desk, whose power button actually
 boots Windows 95 on the CRT. No build step and no npm: every texture is drawn

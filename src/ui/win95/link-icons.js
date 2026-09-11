@@ -214,6 +214,60 @@ function sketch(ctx) {
   r(ctx, 5, 15, 23, 1, '#e08800');               // the girdle
 }
 
+/* ── 8 & 9. Adobe XD and InVision — application tiles ──────────────────── */
+
+/**
+ * A five-by-seven pixel alphabet, for the only four letters that need drawing.
+ *
+ * Drawn rather than set in a font because canvas text at 10px antialiases into
+ * grey fog, and these have to survive being a third of a 32px icon.
+ */
+const LETTERS = {
+  X: ['x...x', 'x...x', '.x.x.', '..x..', '.x.x.', 'x...x', 'x...x'],
+  d: ['....x', '....x', '.xxxx', 'x...x', 'x...x', 'x...x', '.xxxx'],
+  I: ['xxxxx', '..x..', '..x..', '..x..', '..x..', '..x..', 'xxxxx'],
+  n: ['.....', '.....', 'x.xx.', 'xx..x', 'x...x', 'x...x', 'x...x'],
+};
+
+/** Two letters, centred, at double size. */
+function letters(ctx, word, ink, cx, cy, scale = 2) {
+  ctx.fillStyle = ink;
+  const glyphW = 5 * scale;
+  const total = word.length * glyphW + (word.length - 1) * scale;
+  let x = Math.round(cx - total / 2);
+  const y = Math.round(cy - (7 * scale) / 2);
+  for (const ch of word) {
+    const rows = LETTERS[ch];
+    rows.forEach((row, ry) => {
+      [...row].forEach((px, rx) => {
+        if (px === 'x') ctx.fillRect(x + rx * scale, y + ry * scale, scale, scale);
+      });
+    });
+    x += glyphW + scale;
+  }
+}
+
+/**
+ * The tile both share.
+ *
+ * A two-letter square is Adobe's convention rather than 1995's, but it is the
+ * only thing that reads as "an application" at this size without becoming a
+ * pixel-for-pixel trace of somebody's trademark — which is the line this file
+ * stays on the right side of.
+ */
+function appTile(ctx, fill, hi, lo, ink, word) {
+  plate(ctx, 3, 3, 26, 26, fill, hi, lo);
+  letters(ctx, word, ink, 16, 16);
+}
+
+function adobeXd(ctx) {
+  appTile(ctx, '#2e0a1e', '#5a2542', '#180410', '#ff61f6', 'Xd');
+}
+
+function invision(ctx) {
+  appTile(ctx, '#e02d55', '#ff7a9c', '#8f1636', '#ffffff', 'In');
+}
+
 /**
  * name -> draw(ctx). Exported so the folder can ask for one by id without
  * knowing how any of them are built.
@@ -226,6 +280,8 @@ export const DRAW = {
   'link-card': card,
   'link-pomodoro': pomodoro,
   'app-sketch': sketch,
+  'app-xd': adobeXd,
+  'app-invision': invision,
 };
 
 /** Rendered once each, then reused — drawImage takes a canvas directly. */

@@ -46,7 +46,7 @@ import * as audio from '../core/audio.js';
 export const meta = {
   id: 'desktop',
   label: 'Desktop',
-  title: "Rakshit’s First Desktop",
+  title: "Rakshit’s Desktop",
   hud: 'hud-desktop',
 };
 
@@ -293,11 +293,13 @@ export function createDesktopStage({ renderer }) {
         '<kbd>c</kbd> or <kbd>esc</kbd> to put the camera back';
       return;
     }
+    // The tweak panel is deliberately absent from this line. It is still on the
+    // t key for building the scene, but it is not something a visitor should be
+    // invited to open.
     hint.innerHTML = on
       ? '<kbd>esc</kbd> to pull back · click the power button again to shut down · ' +
-        '<kbd>c</kbd> free camera · <kbd>t</kbd> tweak panel'
-      : 'click the power button on the tower · ' +
-        '<kbd>c</kbd> free camera · <kbd>t</kbd> tweak panel';
+        '<kbd>c</kbd> free camera'
+      : 'click the power button on the tower · <kbd>c</kbd> free camera';
   }
   setChrome();
 

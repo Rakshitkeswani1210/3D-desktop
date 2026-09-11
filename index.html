@@ -3,7 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Rakshit&rsquo;s First Desktop</title>
+    <title>Rakshit&rsquo;s Desktop</title>
+    <!-- The Windows flag, the same 32px bitmap the Start button wears.
+         Inlined rather than shipped as a file, like every other icon here. -->
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA00lEQVR42u2W0Q6AIAhF+XT//PYgOC0kNGmtSbsPrhZH8DKJdnwk8AcAOLUcBJO6BYADFA9V/oLOrqyEzTqxwCrv5EmsAQANRgWAogtA/fTaAL3sVlviAGAflOUVOC+gwZwSxAJoMJEAXevdtKUAiAu6lhMXDAC8NwfyJp7NAaLEki5wdZCVUtYIgHsO6MegBahltABTcyAIAMYZwPIK4JpAg2kSRANoMHEAhvXMtlQA4gLdcuICfHQOdG85A3NgPcDAHPDd9ya+986B6Xvkjh076ADz/2PDRlVjyQAAAABJRU5ErkJggg==">
     <style>
       :root {
         color-scheme: dark;
@@ -186,14 +189,17 @@
     <!-- ── the desktop stage ──────────────────────────────────────────── -->
     <div id="hud-desktop" class="stage-hud" hidden>
       <div class="title hud">
-        <b>Rakshit&rsquo;s First Desktop</b>
+        <b>Rakshit&rsquo;s Desktop</b>
       </div>
 
       <div class="controls hud">
         <button id="desk-back" class="pill" type="button">&larr; Back</button>
         <button id="desk-camera" class="pill" type="button">Camera</button>
-        <button id="desk-tweak" class="pill" type="button">Tweak</button>
-        <a href="./viewer.html?part=tower" style="text-decoration:none">
+        <!-- Development tools, hidden from the HUD. The tweak panel is still
+             on the t key and the part inspector is still at viewer.html; both
+             are for building the scene, not for visiting it. -->
+        <button id="desk-tweak" class="pill" type="button" hidden>Tweak</button>
+        <a href="./viewer.html?part=tower" style="text-decoration:none" hidden>
           <button class="pill" type="button">Parts</button>
         </a>
       </div>

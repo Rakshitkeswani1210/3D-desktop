@@ -19,7 +19,7 @@ import { icon } from './icons.js';
 import { linkIcon } from './link-icons.js';
 
 export const DOCS_WINDOW = { w: 472, h: 292 };
-export const BIN_WINDOW = { w: 366, h: 244 };
+export const BIN_WINDOW = { w: 472, h: 244 };
 export const COMPUTER_WINDOW = { w: 472, h: 292 };
 
 /** My Documents: things Rakshit has built or shipped. */
@@ -42,12 +42,21 @@ export const DOCUMENTS = [
  * A folder like any other — Windows 95's was, right down to the Large Icons
  * view. `origin` and `deleted` are what Explorer showed for a binned file, and
  * an item with no url is simply a thing sitting in the trash.
+ *
+ * The dates are the joke: each is roughly when that tool actually stopped
+ * mattering. Sketch is the day Figma left preview; Adobe XD is the day the
+ * Adobe-Figma deal collapsed, by which point XD was already in maintenance;
+ * InVision is the day its service closed for good.
  */
 export const RECYCLE_BIN = [
   { id: 'pomodoro', label: 'Pomodoro timer', glyph: 'link-pomodoro',
     url: 'https://pomodoro-timer-3d.vercel.app' },
   { id: 'sketch', label: 'Sketch', glyph: 'app-sketch',
     origin: 'C:\\Program Files\\Sketch', deleted: '27/09/2016' },
+  { id: 'xd', label: 'Adobe XD', glyph: 'app-xd',
+    origin: 'C:\\Program Files\\Adobe\\Adobe XD', deleted: '18/12/2023' },
+  { id: 'invision', label: 'InVision', glyph: 'app-invision',
+    origin: 'C:\\Program Files\\InVision', deleted: '31/12/2024' },
 ];
 
 const TITLE_H = 18;

@@ -24,25 +24,33 @@ const base = (kind, slug) =>
   new URL(`../../../assets/photos/${kind}/${slug}.jpg`, import.meta.url).href;
 
 /**
- * The folder's contents, in the order the shell listed them.
+ * The folder's contents, in the order they hang on the wall.
  *
- * `label` is the original filename with its extension and stray whitespace
- * removed, and nothing else — the spellings are Rakshit's own.
+ * Two fields, deliberately separate: `slug` is the file on disk and must not
+ * change, `label` is the caption and is free to. They started out the same —
+ * the captions were the original filenames — but a caption is a thing you
+ * rewrite and a filename is a thing other code depends on, so tying them
+ * together would mean every reworded caption silently broke an image.
+ *
+ * This list is the whole folder: a photo is shown because it is named here.
+ * "Car crash" is converted and sitting in assets/photos but deliberately not
+ * listed, so putting its line back is all it takes to bring it out again.
  */
 export const PHOTOS = [
-  'Iceland',
-  'Royce Peak',
-  'Syndey',
-  'Enchanments Washington',
-  'Car crash',
-  'Running on Greenlake',
-  'Tennis',
-  'Lake Tekapo Darkest Place on Earth',
-  'Alpaca',
-].map((label) => {
-  const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  return { label, slug, thumb: base('thumb', slug), view: base('view', slug) };
-});
+  ['iceland', 'Trip to Iceland'],
+  ['royce-peak', 'hiking Royce peak'],
+  ['syndey', 'Syndey'],
+  ['enchanments-washington', 'Enchanments Washington'],
+  ['running-on-greenlake', 'Running on Greenlake'],
+  ['tennis', 'I also play tennis'],
+  ['lake-tekapo-darkest-place-on-earth', 'Lake Tekapo Darkest Place on Earth'],
+  ['alpaca', 'Found Alpacas.'],
+].map(([slug, label]) => ({
+  slug,
+  label,
+  thumb: base('thumb', slug),
+  view: base('view', slug),
+}));
 
 export const WINDOW = { w: 664, h: 486 };
 export const VIEWER = { w: 620, h: 470 };
