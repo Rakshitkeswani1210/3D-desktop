@@ -22,9 +22,10 @@
 
 import { load as loadIcons } from './icons.js';
 import {
-  TASKBAR_H, DESKTOP_ICONS, COMPUTER_CONTENTS,
-  drawWallpaper, drawIconGrid, drawTourHint, drawTaskbar, drawStartMenu,
+  TASKBAR_H, COMPUTER_CONTENTS,
+  drawWallpaper, drawIconGrid, drawTaskbar, drawStartMenu,
 } from './desktop-ui.js';
+import { createClippy } from './clippy.js';
 import { drawMusicPlayer, PLAYLIST, WINDOW as MUSIC_WINDOW } from './music-player.js';
 import { drawBrowser, contentRect, PAGES, PAGE_ZOOM, WINDOW as IE_WINDOW, HOME } from './browser.js';
 import {
@@ -89,46 +90,16 @@ export function createShell({
   const photos = { selected: null, scroll: 0 };
 
   /**
-   * The tour: what to point at next.
+   * The assistant.
    *
    * Every tester said they did not know the desktop was clickable, and one
-   * asked to be shown "the next thing you want me to open". So the shell keeps
-   * track of what has been opened and points at the first thing that has not,
-   * in this order. Once all four have been seen it never points again — the
-   * lesson has landed by then, and continuing would be nagging.
+   * asked to be shown "the next thing you want me to open". He is that, and
+   * he is on screen from the moment the machine comes up rather than after a
+   * delay: guidance that arrives five seconds late has already missed the
+   * people who needed it. He keeps his own clock, so all the shell does is
+   * tell him what has been opened and repaint when he says he moved.
    */
-  const TOUR = ['photos', 'documents', 'music', 'browser'];
-  const visited = new Set();
-  const TOUR_DELAY = 5;
-  let tourId = null;
-  let tourElapsed = 0;
-
-  function tourCandidate() {
-    const app = TOUR.find((a) => !visited.has(a));
-    if (!app) return null;
-    return DESKTOP_ICONS.find((i) => i.app === app)?.id ?? null;
-  }
-
-  function pauseTour() {
-    if (tourId !== null) dirty = true;
-    tourId = null;
-    tourElapsed = 0;
-  }
-
-  function tickTour(dt, usable) {
-    const candidate = target && usable ? tourCandidate() : null;
-    if (candidate !== tourId) {
-      pauseTour();
-      tourId = candidate;
-    }
-    if (!tourId || tourElapsed >= TOUR_DELAY) return;
-    tourElapsed += dt;
-    if (tourElapsed >= TOUR_DELAY) dirty = true;
-  }
-
-  function tourTarget() {
-    return tourElapsed >= TOUR_DELAY && tourId === tourCandidate() ? tourId : null;
-  }
+  const clippy = createClippy();
 
   /** My Documents' own selection. */
   const documents = { selected: null };
@@ -173,7 +144,7 @@ export function createShell({
   }
 
   function openWindow(app, opts = {}) {
-    visited.add(app);
+    if (clippy.saw(app)) dirty = true;
     const existing = state.windows.find((w) => w.app === app);
     if (existing) {
       // The viewer is reused rather than stacked: asking for a second photo
@@ -264,12 +235,6 @@ export function createShell({
     hit.add(0, 0, w, h, 'desktop', { type: 'desktop' });
 
     drawIconGrid(ctx, state, hit, hover);
-    // With the icons, and so underneath every window. The hint belongs to the
-    // icon it points at, and an open window is in front of that icon — a
-    // tooltip floating over the window it is not about just reads as broken
-    // layering. If a window covers the icon, the hint is not the thing to
-    // look at anyway.
-    drawTourHint(ctx, tourTarget());
 
     const snap = player.snapshot();
     const top = state.windows[state.windows.length - 1];
@@ -289,6 +254,13 @@ export function createShell({
         drawShortcutFolder(ctx, win, COMPUTER_ITEMS, computer, hit, hover, win === top);
       }
     }
+
+    // Over the windows, under the shell. The Assistant floated on top of
+    // whatever you were doing, which is the only place a character in a corner
+    // can live: drawn underneath, the first window you open cuts him in half.
+    // He registers no hit region, so a click meant for the window behind him
+    // still reaches it.
+    clippy.draw(ctx, w, h - TASKBAR_H);
 
     if (state.startOpen) drawStartMenu(ctx, h - TASKBAR_H, hit, hover);
     drawTaskbar(ctx, w, h, state, hit, hover);
@@ -522,7 +494,6 @@ export function createShell({
   }
 
   function detach() {
-    pauseTour();
     target = null;
     hover = null;
     armed = null;
@@ -540,7 +511,7 @@ export function createShell({
   }
 
   function tick(dt = 0, usable = true) {
-    tickTour(dt, usable);
+    if (clippy.tick(dt, usable)) dirty = true;
     const now = new Date();
     if (now.getMinutes() !== state.time.getMinutes()) { state.time = now; dirty = true; }
     if (dirty) repaint();
@@ -555,7 +526,7 @@ export function createShell({
    * there to be read, the way a machine set up for a visitor would be.
    */
   function reset() {
-    pauseTour();
+    clippy.reset();
     state.windows.length = 0;
     state.selected = -1;
     state.startOpen = false;
@@ -572,7 +543,6 @@ export function createShell({
     documents.selected = null;
     bin.selected = null;
     computer.selected = null;
-    visited.clear();
     player.stop();
     openWindow('notes');
     dirty = true;
@@ -583,7 +553,7 @@ export function createShell({
   reset();
 
   return {
-    state, player, browser, draw, attach, detach, tick, reset, webTarget, pauseTour,
+    state, player, browser, draw, attach, detach, tick, reset, webTarget,
     pointerMove, pointerLeave, pointerDown, pointerUp,
     openWindow, closeWindow,
     applyNoteSettings, scrollNotes,

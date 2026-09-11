@@ -14,7 +14,7 @@
 import { C, FS, FONT, FONT_MONO, panel, text, wrapText } from './chrome.js';
 import { icon } from './icons.js';
 
-export const WINDOW = { w: 381, h: 431 };
+export const WINDOW = { w: 381, h: 278 };
 
 /** The note's own name, which is also the window's. */
 export const TITLE = "Rakshit's Computer";

@@ -16,10 +16,13 @@
  *
  * A control reads and writes `target[key]` directly, so the panel is editing
  * the spec objects themselves — there is no second copy of the truth to drift.
+ *
+ * More than one panel can be open at once: each gets its own storage slot and
+ * its own corner, set with `place`. The stylesheet is shared and injected once.
  */
 
 const STYLE = `
-#tweak {
+.tweak {
   position: fixed; top: 64px; right: 24px; z-index: 5;
   width: 268px; max-height: calc(100vh - 108px);
   display: flex; flex-direction: column;
@@ -32,63 +35,63 @@ const STYLE = `
   user-select: none; -webkit-user-select: none;
   box-shadow: 0 18px 50px rgba(0,0,0,.5);
 }
-#tweak[hidden] { display: none !important; }
-#tweak header {
+.tweak[hidden] { display: none !important; }
+.tweak header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 12px; border-bottom: 1px solid rgba(232,236,245,.10);
 }
-#tweak header b { font-size: 11px; letter-spacing: .13em; text-transform: uppercase; font-weight: 600; }
-#tweak header span { font-size: 10px; color: rgba(232,236,245,.4); }
-#tweak .body { overflow-y: auto; padding: 4px 0 8px; }
-#tweak .group > summary {
+.tweak header b { font-size: 11px; letter-spacing: .13em; text-transform: uppercase; font-weight: 600; }
+.tweak header span { font-size: 10px; color: rgba(232,236,245,.4); }
+.tweak .body { overflow-y: auto; padding: 4px 0 8px; }
+.tweak .group > summary {
   list-style: none; cursor: pointer;
   padding: 7px 12px; font-size: 10px; letter-spacing: .12em;
   text-transform: uppercase; color: rgba(232,236,245,.42); font-weight: 600;
 }
-#tweak .group > summary::-webkit-details-marker { display: none; }
-#tweak .group > summary:hover { color: #e8ecf5; }
-#tweak .group[open] > summary { color: rgba(232,236,245,.62); }
-#tweak .row { display: grid; grid-template-columns: 74px 1fr 52px; gap: 8px; align-items: center; padding: 3px 12px; }
-#tweak .row label { font-size: 11px; color: rgba(232,236,245,.66); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#tweak .row.dirty label { color: #7fd6ff; }
-#tweak .row.text-row { grid-template-columns: 1fr; gap: 4px; }
-#tweak input[type=text], #tweak textarea {
+.tweak .group > summary::-webkit-details-marker { display: none; }
+.tweak .group > summary:hover { color: #e8ecf5; }
+.tweak .group[open] > summary { color: rgba(232,236,245,.62); }
+.tweak .row { display: grid; grid-template-columns: 74px 1fr 52px; gap: 8px; align-items: center; padding: 3px 12px; }
+.tweak .row label { font-size: 11px; color: rgba(232,236,245,.66); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tweak .row.dirty label { color: #7fd6ff; }
+.tweak .row.text-row { grid-template-columns: 1fr; gap: 4px; }
+.tweak input[type=text], .tweak textarea {
   width: 100%; min-width: 0; padding: 5px 6px;
   font: inherit; color: #e8ecf5; background: rgba(255,255,255,.06);
   border: 1px solid rgba(232,236,245,.12); border-radius: 4px;
   user-select: text; -webkit-user-select: text;
 }
-#tweak textarea { min-height: 130px; resize: vertical; }
-#tweak input[type=range] {
+.tweak textarea { min-height: 130px; resize: vertical; }
+.tweak input[type=range] {
   -webkit-appearance: none; appearance: none; width: 100%; height: 3px;
   background: rgba(232,236,245,.20); border-radius: 2px; outline: none; cursor: pointer;
 }
-#tweak input[type=range]::-webkit-slider-thumb {
+.tweak input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none; width: 11px; height: 11px; border-radius: 50%;
   background: #e8ecf5; cursor: pointer;
 }
-#tweak .row.dirty input[type=range]::-webkit-slider-thumb { background: #7fd6ff; }
-#tweak input[type=number] {
+.tweak .row.dirty input[type=range]::-webkit-slider-thumb { background: #7fd6ff; }
+.tweak input[type=number] {
   width: 100%; font: inherit; font-size: 11px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   color: #e8ecf5; background: rgba(255,255,255,.06);
   border: 1px solid rgba(232,236,245,.12); border-radius: 4px;
   padding: 2px 4px; text-align: right; -moz-appearance: textfield;
 }
-#tweak input[type=number]::-webkit-outer-spin-button,
-#tweak input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-#tweak footer {
+.tweak input[type=number]::-webkit-outer-spin-button,
+.tweak input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.tweak footer {
   display: flex; gap: 6px; padding: 10px 12px;
   border-top: 1px solid rgba(232,236,245,.10);
 }
-#tweak footer button {
+.tweak footer button {
   flex: 1; font: inherit; font-size: 11px; color: #e8ecf5; cursor: pointer;
   background: rgba(255,255,255,.07); border: 1px solid rgba(232,236,245,.14);
   border-radius: 6px; padding: 6px 8px;
 }
-#tweak footer button:hover { background: rgba(255,255,255,.14); }
-#tweak footer button.primary { color: #7fd6ff; border-color: rgba(127,214,255,.4); }
-#tweak footer button:disabled { opacity: .35; cursor: default; }
+.tweak footer button:hover { background: rgba(255,255,255,.14); }
+.tweak footer button.primary { color: #7fd6ff; border-color: rgba(127,214,255,.4); }
+.tweak footer button:disabled { opacity: .35; cursor: default; }
 `;
 
 /**
@@ -102,20 +105,37 @@ const STYLE = `
  * @param {() => void} o.onRebuild  a dimension changed; build the object again
  * @param {string} o.storageKey     localStorage slot, so tweaks survive a reload
  */
-export function createTweakPanel({ groups, onLive, onRebuild, storageKey = 'tweaks', title = 'Tweak' }) {
-  const style = document.createElement('style');
-  style.textContent = STYLE;
-  document.head.appendChild(style);
+export function createTweakPanel({
+  groups, onLive, onRebuild, storageKey = 'tweaks', title = 'Tweak',
+  hint = 'T to hide', place = null,
+}) {
+  if (!document.getElementById('tweak-style')) {
+    const style = document.createElement('style');
+    style.id = 'tweak-style';
+    style.textContent = STYLE;
+    document.head.appendChild(style);
+  }
 
   const root = document.createElement('div');
-  root.id = 'tweak';
+  root.className = 'tweak';
+  root.id = `tweak-${storageKey}`;
+  // Panels stack in the same corner by default; `place` moves one aside so
+  // two can be open and read at the same time.
+  if (place) Object.assign(root.style, place);
   root.hidden = true;
 
   const controls = new Map();
   const flat = groups.flatMap((g) => g.controls);
   for (const c of flat) controls.set(c.id, { spec: c, initial: c.target[c.key] });
   const exports = groups.filter((g) => g.export);
-  const exportedIds = new Set(exports.flatMap((g) => g.controls.map((c) => c.id)));
+  // Matched by target object rather than by group membership: a panel may
+  // split one settings object across several groups, and every control that
+  // edits an exported object belongs in that object's complete listing rather
+  // than in the loose diff, which names the desk spec and talks in millimetres.
+  const exportedTargets = new Set(exports.map((g) => g.export.target));
+  const exportedIds = new Set(
+    flat.filter((c) => exportedTargets.has(c.target)).map((c) => c.id),
+  );
   const isText = (spec) => spec.type === 'text' || spec.type === 'textarea';
   const constrain = (spec, value) => spec.clamp
     ? Math.max(spec.min, Math.min(spec.max, Math.round(value / spec.step) * spec.step))
@@ -155,7 +175,7 @@ export function createTweakPanel({ groups, onLive, onRebuild, storageKey = 'twea
   /* ── the DOM ────────────────────────────────────────────────────────── */
 
   const header = document.createElement('header');
-  header.innerHTML = `<b>${title}</b><span>T to hide</span>`;
+  header.innerHTML = `<b>${title}</b><span>${hint}</span>`;
   root.appendChild(header);
 
   const body = document.createElement('div');

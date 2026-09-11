@@ -86,42 +86,6 @@ export function drawIconGrid(ctx, state, hit, hover) {
   });
 }
 
-export function drawTourHint(ctx, tourId) {
-  const index = DESKTOP_ICONS.findIndex((item) => item.id === tourId);
-  if (index < 0) return;
-  const { x, y, cellWidth, rowHeight } = ICON_GRID;
-  tourTip(ctx, x + cellWidth - 6, y + index * rowHeight + 10,
-    `Click to open ${DESKTOP_ICONS[index].label}`);
-}
-
-/**
- * The nudge toward the next thing worth opening.
- *
- * Three testers all said the same thing: they did not realise the desktop was
- * clickable. This is the answer, and it is a Windows 95 tooltip rather than a
- * modern callout for one reason — the shell had exactly this widget, pale
- * yellow with a hairline border, so guidance can be added without anything
- * appearing on screen that the era would not have drawn.
- */
-function tourTip(ctx, x, y, label) {
-  ctx.font = `${FS}px ${FONT}`;
-  const w = Math.ceil(ctx.measureText(label).width) + 14;
-  const h = 20;
-  const ax = x + 7;              // leave room for the pointer on the left
-
-  // The pointer: a solid triangle aimed back at the icon.
-  ctx.fillStyle = C.black;
-  for (let i = 0; i < 7; i++) ctx.fillRect(x + i, y + h / 2 - i, 1, i * 2 + 1);
-
-  ctx.fillStyle = '#ffffe1';     // the tooltip yellow, unchanged since 1995
-  ctx.fillRect(ax, y, w, h);
-  ctx.strokeStyle = C.black;
-  ctx.lineWidth = 1;
-  ctx.strokeRect(ax + 0.5, y + 0.5, w - 1, h - 1);
-
-  text(ctx, label, ax + 7, y + 5);
-}
-
 export function drawTaskbar(ctx, w, h, state, hit, hover) {
   const y = h - TASKBAR_H;
 

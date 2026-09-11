@@ -48,6 +48,13 @@ you happen to click something.
 - [x] **Added a next-step pointer after the note is closed or read.** Same
       machinery as the power hint — it already projects onto the tube and tracks
       the camera, so pointing it at a desktop icon is a small change.
+- [x] **It is Clippy now.** The tooltip was still chrome, and chrome is what
+      people filter out. A paperclip in the bottom right corner, on screen from
+      the first frame, blinking and changing what it says, is the one piece of
+      guidance from this era nobody ever managed to ignore.
+      `src/ui/win95/clippy.js`.
+- [x] **No delay on the guidance.** Five seconds of nothing was five seconds
+      spent losing the people the hint was for. He is there when the desktop is.
 - [x] **Sequenced.** Photos → Documents → Music → Internet Explorer, then it stops. Point at one thing at a time (My Photos → My Documents →
       My Music), advancing as each is opened, rather than labelling everything
       at once.
@@ -62,9 +69,9 @@ the user needs to do next").
 Currently 776 characters over four paragraphs. It is the first thing anyone
 reads and it ends on "Happy exploring", which is warm but not an instruction.
 
-- [ ] **Still open: cut it down.** The second paragraph carries the story and is the long
-      one; the beige box, the modem and Windows 95 could survive in half the
-      words.
+- [x] **Cut down, and the window with it.** 431px of Notepad for 13 lines of
+      text was mostly empty field; the window is 278 now, which is the text
+      plus its caret and nothing else.
 - [x] **Ends with an action.** "Close this note and click around — every icon here opens something." Something like "Start with My Photos —
       double-click anything on the desktop."
 - [x] Checked: 16 wrapped lines, still fits with room. Lives in `NOTE` in `src/ui/win95/notes.js`; the window auto-fits, but

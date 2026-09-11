@@ -84,7 +84,14 @@ $zoom.addEventListener('change', () => {
   canvas.style.height = $zoom.checked ? '1200px' : '';
 });
 
-(function loop() { shell.tick(); requestAnimationFrame(loop); })();
+// Real elapsed time, so the parts of the shell that are on a clock — the
+// assistant's delay before he speaks up — behave here as they do on the tube.
+let last = performance.now();
+(function loop(now = last) {
+  shell.tick((now - last) / 1000);
+  last = now;
+  requestAnimationFrame(loop);
+})();
 
 // For poking at from the console and from tests.
 window.__shell = shell;

@@ -13,6 +13,7 @@
 
 import { MONITOR, TOWER, KEYBOARD, DESK, FRAMING } from '../theme/desk-spec.js';
 import { NOTE_SETTINGS } from '../ui/win95/notes.js';
+import { CLIPPY_SETTINGS } from '../ui/win95/clippy.js';
 
 const DEG = 180 / Math.PI;
 
@@ -118,6 +119,46 @@ export const CONTROL_GROUPS = [
       mm('DESK.depth', 'Depth', DESK, 'depth', 400, 1200, 10, true),
       mm('DESK.thickness', 'Thickness', DESK, 'thickness', 10, 80, 1, true),
       mm('DESK.wallZ', 'Wall Z', DESK, 'wallZ', -900, -180, 5, true),
+    ],
+  },
+];
+
+/* ── the assistant's own panel, on L ─────────────────────────────────────
+   Separate from the list above because it is a separate panel: desk tweaks
+   are millimetres of furniture, and these are raster pixels on the screen
+   the furniture is showing. Mixing them in one scroll would make both harder
+   to find. */
+
+/** Shorthand: a pixel control on the 800x600 desktop. */
+const px = (key, label, min, max, step = 1, decimals = 0) =>
+  ({ id: `CLIPPY_SETTINGS.${key}`, label, target: CLIPPY_SETTINGS, key,
+    min, max, step, unit: 'px', decimals });
+
+export const CLIPPY_GROUPS = [
+  {
+    label: 'Clippy transform',
+    export: { name: 'CLIPPY_SETTINGS', file: 'src/ui/win95/clippy.js', target: CLIPPY_SETTINGS },
+    controls: [
+      // min/max/step are in DISPLAYED units, as the degree controls above are:
+      // 30 to 300 percent, stored as 0.3 to 3.
+      { id: 'CLIPPY_SETTINGS.scale', label: 'Scale', target: CLIPPY_SETTINGS, key: 'scale', min: 30, max: 300, step: 1, factor: 100, unit: '%', decimals: 0 },
+      px('right', 'From right', 0, 700, 1),
+      px('bottom', 'Up from bar', 0, 460, 1),
+      { id: 'CLIPPY_SETTINGS.wire', label: 'Wire', target: CLIPPY_SETTINGS, key: 'wire', min: 2, max: 14, step: 0.1, unit: 'px', decimals: 1 },
+      { id: 'CLIPPY_SETTINGS.eye', label: 'Eyes', target: CLIPPY_SETTINGS, key: 'eye', min: 5, max: 22, step: 0.5, unit: 'px', decimals: 1 },
+    ],
+  },
+  {
+    label: 'What he says',
+    controls: [
+      { id: 'CLIPPY_SETTINGS.font', label: 'Font', target: CLIPPY_SETTINGS, key: 'font', type: 'text' },
+      px('size', 'Text size', 7, 24, 1),
+      px('line', 'Line height', 8, 32, 1),
+      px('width', 'Balloon wrap', 90, 460, 2),
+      px('pad', 'Balloon pad', 2, 20, 1),
+      px('sayX', 'Balloon X', -420, 160, 1),
+      px('sayY', 'Balloon Y', -260, 200, 1),
+      { id: 'CLIPPY_SETTINGS.dwell', label: 'Seconds a line', target: CLIPPY_SETTINGS, key: 'dwell', min: 2, max: 40, step: 0.5, unit: 's', decimals: 1 },
     ],
   },
 ];

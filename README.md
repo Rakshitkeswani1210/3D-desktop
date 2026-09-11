@@ -145,7 +145,7 @@ Press **T** outside a text field to open **Desk tweaks**. Its first group,
 **Note transform**, edits the welcome Notepad live: **Width**, **Height**,
 **Left (X)**, **Top (Y)**, **Title**, and multiline **Body text**. Layout uses
 pixels on the 800 x 600 desktop raster, not browser pixels. The default note is
-381 x 431 at (359, 78), titled "Rakshit's Computer".
+381 x 278 at (359, 78), titled "Rakshit's Computer".
 The note stays within the desktop, wraps long words, and offers mouse-wheel
 scrolling plus **Up**/**Down** buttons if edited text exceeds its height.
 
@@ -157,13 +157,53 @@ Paste that complete output back into chat to make it the new defaults.
 Text and layout changes persist alongside existing scene tweaks; **Reset**
 restores all panel defaults. Titles update in both the note and its taskbar tab.
 
-The cream My Photos tour hint appears after five seconds of eligible desktop
-time: the machine is on and the camera has settled in the zoomed view. Notes
-may stay open; opening, closing, or reopening it never resets the delay or
-hides the hint. The hint is drawn above application windows. Opening its
-target before the delay cancels that target's hint. Later unvisited tour
-targets also get the same five-second delay. Powering off, leaving the stage,
-or leaving the settled desktop view cancels the pending delay.
+### The assistant
+
+A paperclip with eyebrows stands in the bottom right corner and says what to
+do in a pale yellow balloon. He replaces the tooltip that used to do this job,
+for the reason Office 97 hired him in the first place: a label nobody asked
+for gets filtered out, and a face does not. He is drawn from arcs in
+`src/ui/win95/clippy.js`, so nothing is pasted in and the Office Assistant's
+own art stays where it belongs. The shape is a real gem clip and the order of
+the bends is the whole thing: the top turn is wide, leaving the outer left leg
+and arcing across most of the clip to come down as the inner right leg. That
+long open hook above the eyes is what everybody recognises. A small turn
+joining the two left legs is a hairpin, and reads as one instantly.
+
+He is there from the moment the desktop paints, with no delay, because
+guidance that arrives five seconds late has already missed the people who
+needed it. He is drawn over application windows and under the taskbar, the way
+the Assistant always floated on top, and he registers no hit region, so a
+click meant for the window behind him still gets there.
+
+Press **L** outside a text field for **Clippy**, his own tweak panel, the same
+machinery the desk panel runs on and sitting beside it so both can be open at
+once. **Clippy transform** carries Scale (30% to 300%, pinned by his bottom
+right corner), From right, Up from bar, Wire thickness and Eye size.
+**What he says** carries the balloon: Font (a CSS family, so type
+`"Comic Sans MS", cursive` into it and watch), Text size, Line height, Balloon
+wrap, Balloon pad, Balloon X and Y, and how many seconds a line stays up. The
+balloon moves on its own while the tail stays on his head. **Copy settings**
+hands back the complete `CLIPPY_SETTINGS` object to paste over the one in
+`src/ui/win95/clippy.js`, exactly as the note's does.
+
+Nothing about him is baked into geometry, so every control is live: the panel
+writes the setting, the shell repaints, and the picture on the tube is the new
+one on the next frame.
+
+He keeps his own clock. A line stays up for as long as `dwell` says, thirteen
+and a half seconds as it stands, and then he thinks of another one; his eyebrows lift for a moment whenever he starts one; and he
+blinks every few seconds. All of it reports back to the shell, which still
+repaints only when something actually moved. An idle desktop measures at 13
+repaints in 10 seconds, and an idle camera costs nothing at all: he holds
+still while the view is flying or the machine is off.
+
+What he says depends on what has not been opened yet. While My Photos is
+unopened he sells My Photos, then My Documents, then My Music, then Internet
+Explorer, with two phrasings each so a second look is never the same sentence.
+Opening one interrupts him mid line and moves him on. Once all four have been
+seen he stops selling and just talks: the Recycle Bin, the note, dragging
+windows by the title bar.
 
 ## Layout
 

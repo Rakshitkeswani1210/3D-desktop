@@ -34,7 +34,7 @@ import { createCameraRig, frameObject } from '../core/camera-rig.js';
 import { createRoomBackdrop } from '../theme/room.js';
 import { FRAMING, MONITOR, TOWER, KEYBOARD, recompute, u } from '../theme/desk-spec.js';
 import { createTweakPanel } from '../core/tweak.js';
-import { CONTROL_GROUPS } from './desktop-controls.js';
+import { CONTROL_GROUPS, CLIPPY_GROUPS } from './desktop-controls.js';
 import { disposeTree } from '../lib/dispose.js';
 import { SHARED_MATERIALS } from '../theme/shared-materials.js';
 import { drawBoot, drawOff, crtGrille } from '../theme/desk-textures.js';
@@ -479,6 +479,26 @@ export function createDesktopStage({ renderer }) {
   else applyLive();
   tweak.sync();
 
+  /**
+   * The assistant's own panel, on L.
+   *
+   * A second instance rather than another group in the first one: these are
+   * raster pixels on the screen, not millimetres of furniture, and they are
+   * usually being nudged while watching him rather than the desk. It sits to
+   * the left of the desk panel so both can be open at once, and it needs no
+   * rebuild path at all because nothing he is made of is baked into geometry.
+   */
+  const clippyTweak = createTweakPanel({
+    groups: CLIPPY_GROUPS,
+    storageKey: 'clippy-tweaks',
+    title: 'Clippy',
+    hint: 'L to hide',
+    place: { right: '304px' },
+    onLive: () => shell.invalidate(),
+    onRebuild: () => shell.invalidate(),
+  });
+  shell.invalidate();
+
   const tweakBtn = document.getElementById('desk-tweak');
   const syncTweakBtn = () => tweakBtn.classList.toggle('on', tweak.isOpen());
   tweakBtn.addEventListener('click', () => {
@@ -739,7 +759,9 @@ export function createDesktopStage({ renderer }) {
     if (event.key === 't' || event.key === 'T') {
       tweak.toggle();
       syncTweakBtn();
+      return;
     }
+    if (event.key === 'l' || event.key === 'L') clippyTweak.toggle();
   }
   window.addEventListener('keydown', onKeyDown);
 
@@ -762,7 +784,6 @@ export function createDesktopStage({ renderer }) {
 
     deactivate() {
       enabled = false;
-      shell.pauseTour();
       webFrame.hide();
       dismissHint();
       // Put the camera back before leaving, so switching away and returning
@@ -770,6 +791,7 @@ export function createDesktopStage({ renderer }) {
       setUnlocked(false, false);
       if (!rig.moving) rig.snapTo(zoomed ? zoomFraming() : wide());
       tweak.toggle(false);
+      clippyTweak.toggle(false);
       syncTweakBtn();
       setHover(null);
       parallaxTarget.set(0, 0);
