@@ -264,6 +264,12 @@ export function createShell({
     hit.add(0, 0, w, h, 'desktop', { type: 'desktop' });
 
     drawIconGrid(ctx, state, hit, hover);
+    // With the icons, and so underneath every window. The hint belongs to the
+    // icon it points at, and an open window is in front of that icon — a
+    // tooltip floating over the window it is not about just reads as broken
+    // layering. If a window covers the icon, the hint is not the thing to
+    // look at anyway.
+    drawTourHint(ctx, tourTarget());
 
     const snap = player.snapshot();
     const top = state.windows[state.windows.length - 1];
@@ -284,8 +290,6 @@ export function createShell({
       }
     }
 
-    // Keep guidance visible even when an open note overlaps the icon column.
-    drawTourHint(ctx, tourTarget());
     if (state.startOpen) drawStartMenu(ctx, h - TASKBAR_H, hit, hover);
     drawTaskbar(ctx, w, h, state, hit, hover);
 
