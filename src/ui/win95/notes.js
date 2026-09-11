@@ -26,20 +26,14 @@ export const TITLE = "Rakshit's Computer";
 export const NOTE = [
   "Hey, I'm Rakshit. Welcome to my computer.",
   '',
-  'It started with a beige box. My parents brought one home one day, and I '
-  + 'remember pressing that giant button on the side, hearing it whirr, '
-  + 'watching the screen come alive. I disappeared into it for hours. Pinball. '
-  + 'Paint, mostly drawing things nobody asked for. Then a second box showed '
-  + 'up, the Modem, and it screeched like it was in pain every time it '
-  + 'connected. But it worked. And suddenly the world was right there. '
-  + 'Internet Explorer was how I saw all of it. All of it held together by '
-  + 'Windows 95. Start menu, teal desktop, that little startup chime.',
+  'It started with a beige box. I pressed the giant button, the screen came '
+  + 'alive, and I disappeared into it for hours. Pinball. Paint. A Modem that '
+  + 'screeched every time it connected. All of it held together by Windows 95.',
   '',
-  "So this is my lil corner. Photos from places I've been. Work I've shipped. "
-  + "And the 3 songs I've played so many times I should probably be embarrassed.",
+  "So I rebuilt it. Open My Photos for places I've been. My Music for the 3 "
+  + "songs I play on repeat. My Documents for work I've shipped.",
   '',
-  'Close this note and click around — every icon here opens something. '
-  + 'Happy exploring. Nice to meet you.',
+  'Double click anything. Have fun.',
 ];
 
 export const NOTE_SETTINGS = {
