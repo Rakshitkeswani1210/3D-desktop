@@ -207,19 +207,39 @@ export function createDesktopStage({ renderer }) {
    *
    * There was no way to mute this scene at all — audio.setEnabled() existed and
    * nothing called it — which is why the feedback asked for "mute by default".
-   * The real problem was the level, fixed in core/audio.js; this is for the
-   * person who opened the link at work regardless.
+   * The level was the other half of that, and is fixed in core/audio.js.
    *
-   * It starts ON: the power thunk and the fan spinning up are a large part of
-   * what this is, and muting by default spends them on nobody.
+   * It starts OFF. The power thunk and the fan spinning up are a large part of
+   * what this is, so muting by default does spend them on anyone who never
+   * finds the toggle — but a link like this gets opened on a work machine, and
+   * a page that makes noise unasked during a meeting is the worse failure. The
+   * default has to be the one that is never embarrassing; the pill is right
+   * there for everyone else.
    */
   const soundBtn = document.getElementById('desk-sound');
-  let soundOn = true;
-  soundBtn.addEventListener('click', () => {
-    soundOn = !soundOn;
+  let soundOn = false;
+
+  /**
+   * There are two independent ways for this page to make noise: the
+   * synthesised machine sounds behind core/audio.js's master gain, and the
+   * music player's HTMLAudioElement, which is deliberately outside that graph.
+   * The toggle has to close both, or "Sound off" is a lie the moment somebody
+   * presses play.
+   */
+  function applySound() {
     audio.setEnabled(soundOn);
+    shell.player.setMuted(!soundOn);
     soundBtn.textContent = soundOn ? 'Sound on' : 'Sound off';
     soundBtn.classList.toggle('off', !soundOn);
+  }
+
+  // The markup starts muted to match; this makes the player agree before the
+  // toggle is ever touched.
+  applySound();
+
+  soundBtn.addEventListener('click', () => {
+    soundOn = !soundOn;
+    applySound();
   });
 
   /**

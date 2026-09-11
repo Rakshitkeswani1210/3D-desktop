@@ -18,7 +18,10 @@
 let ctx = null;
 let master = null;
 let noiseBuffer = null;
-let enabled = true;
+// Starts muted. This gets opened on a work machine as often as not, and a
+// scene that thunks and hums the moment it loads is the wrong surprise in a
+// meeting. The toggle in the corner turns it on.
+let enabled = false;
 
 /** Per-variant voicing. Frequencies in Hz, durations in seconds. */
 const VOICES = {
@@ -61,7 +64,11 @@ function build() {
   comp.release.value = 0.12;
 
   master = ctx.createGain();
-  master.gain.value = MASTER;
+  // The graph is built lazily, on the first gesture — which is usually the
+  // power button, and that starts the fan. startHum() is gated by master gain
+  // alone, so building at full level here would let the hum through while the
+  // scene is meant to be muted. Honour the current state instead.
+  master.gain.value = enabled ? MASTER : 0;
   master.connect(comp);
   comp.connect(ctx.destination);
 
@@ -97,7 +104,13 @@ export function setEnabled(on) {
 export const isEnabled = () => enabled;
 
 /** Diagnostics: context state and how many clicks have actually been voiced. */
-export const state = () => ({ ctx: ctx ? ctx.state : null, enabled, played });
+export const state = () => ({
+  ctx: ctx ? ctx.state : null, enabled, played,
+  // The hum is gated by master gain alone, so this is the number that
+  // actually says whether the scene can make noise.
+  masterGain: master ? master.gain.value : null,
+  humming: !!hum,
+});
 let played = 0;
 
 /**

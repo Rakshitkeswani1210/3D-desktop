@@ -104,13 +104,25 @@ export function createPlayer(onChange = () => {}) {
 
   function setVolume(v) { el.volume = Math.max(0, Math.min(1, v)); }
 
+  /**
+   * Follow the scene's sound toggle.
+   *
+   * This element is outside core/audio.js's master gain by design, so muting
+   * the machine's own noises does nothing to a song — and a track playing on
+   * a page that says "Sound off" is the exact failure the toggle exists to
+   * prevent. Mute rather than pause: the transport keeps working, the UI keeps
+   * telling the truth about what is playing, and turning sound back on is
+   * audible immediately rather than needing a second press of play.
+   */
+  function setMuted(m) { el.muted = !!m; }
+
   function dispose() {
     el.pause();
     el.removeAttribute('src');
     el.load();
   }
 
-  return { load, play, pause, toggle, stop, next, prev, seek, setVolume, snapshot, dispose };
+  return { load, play, pause, toggle, stop, next, prev, seek, setVolume, setMuted, snapshot, dispose };
 }
 
 /** "3:34" — the only time format this UI ever shows. */
