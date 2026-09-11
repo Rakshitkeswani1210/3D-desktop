@@ -90,6 +90,38 @@ export const CLIPPY_SETTINGS = {
 
 const ORDER = ['photos', 'documents', 'music', 'browser'];
 
+/**
+ * What he says when you click him.
+ *
+ * An assistant you can poke is an assistant, and one you cannot is a picture.
+ * He is the only thing on this desktop that answers back, so the answer is
+ * the one a paperclip with eyebrows would give.
+ */
+const POKES = [
+  'Ugh. Do not poke the assistant.',
+  'That is not a button. I am a colleague.',
+  'I felt that.',
+  'Please. I am load bearing.',
+  'Do that again and I will suggest a letter template.',
+  'Rude. I have been standing here for you.',
+];
+
+/** How long the face lasts before he goes back to being helpful. */
+const POKE_TIME = 3.2;
+
+/* The recoil. He jerks back, shudders it off over about three quarters of a
+   second, holds the face, then eases out of it at the end. Only the moving
+   parts cost repaints: once the shudder has died the pose is held for free. */
+const POKE_SNAP = 0.12;    // into the face this fast
+const POKE_SETTLE = 0.5;   // shudder dead by here
+const POKE_RELEASE = 0.35; // and easing back out over the last of it
+
+/* And the rate it is worth repainting a 800x600 texture at while that runs.
+   The shudder moves him about two screen pixels at the size he ships at, so
+   a frame every 25ms is well past what anybody can see, and on a 120Hz
+   display it is a third of the repaints that drawing every frame would cost. */
+const POKE_FPS = 40;
+
 const LINES = [
   { app: 'photos', say: "It looks like you're new here. Click My Photos and see where I've been." },
   { app: 'photos', say: 'My Photos is every place I actually went. Click the folder.' },
@@ -126,6 +158,9 @@ export function createClippy() {
   let blinkIn = BLINK_GAP;
   let blink = 0;          // 0 open, 1 shut
   let brows = 0;          // seconds of raised eyebrows left, for a new line
+  let poked = 0;          // seconds of being appalled left
+  let pokeLine = null;
+  let pokeFrame = -1;     // the last recoil frame actually painted
 
   function pick() {
     const next = ORDER.find((app) => !visited.has(app));
@@ -136,6 +171,41 @@ export function createClippy() {
     const fresh = pool.filter((l) => l !== line);
     const from = fresh.length ? fresh : pool;
     return from[Math.floor(Math.random() * from.length)];
+  }
+
+  /**
+   * His face right now.
+   *
+   * One number, `k`, carries the whole performance: it runs up as he pulls
+   * the face, sits at 1 while he holds it, and runs back down as he lets it
+   * go, and every feature is just the normal value mixed toward the appalled
+   * one by that much. The shudder is a decaying sine on top, which is what
+   * makes it read as a recoil rather than as a new drawing being swapped in.
+   */
+  function expression() {
+    const rest = {
+      lean: 0, shake: 0, blinkL: blink, blinkR: blink,
+      browL: 1, browR: 1, lookX: -0.2, lookY: 0.08,
+    };
+    if (poked <= 0) return rest;
+
+    const t = POKE_TIME - poked;
+    const k = Math.min(1, t / POKE_SNAP, poked / POKE_RELEASE);
+    // Negative amplitude so the first quarter cycle goes AWAY from the hand.
+    // A ring that opens by tipping toward the thing that touched you reads as
+    // a nod, which is the opposite of the point.
+    const ring = -Math.exp(-t * 9) * Math.sin(t * 26);
+
+    return {
+      lean: -0.055 * k + ring * 0.09,
+      shake: ring * 6,
+      blinkL: mix(0, 0.55, k),
+      blinkR: mix(0, 0.16, k),
+      browL: mix(1, 0.15, k),
+      browR: mix(1, 1.5, k),
+      lookX: mix(-0.2, -0.66, k),
+      lookY: mix(0.08, -0.34, k),
+    };
   }
 
   /** A new line, and the raised eyebrows that go with saying one. */
@@ -158,11 +228,23 @@ export function createClippy() {
       return false;
     },
 
+    /** Somebody clicked him. Pull a face about it. */
+    poke() {
+      const fresh = POKES.filter((l) => l !== pokeLine);
+      pokeLine = fresh[Math.floor(Math.random() * fresh.length)];
+      poked = POKE_TIME;
+      pokeFrame = -1;
+      blink = 0;          // no blinking over the squint
+      return true;
+    },
+
     /** Back to a machine nobody has touched yet. */
     reset() {
       visited.clear();
       blink = 0;
       blinkIn = BLINK_GAP;
+      poked = 0;
+      pokeLine = null;
       speak();
     },
 
@@ -174,6 +256,25 @@ export function createClippy() {
      */
     tick(dt, awake = true) {
       if (!awake || !dt) return false;
+
+      // Being appalled runs at frame rate while there is something to see and
+      // then stops: the shudder and both ends of the face are worth repaints,
+      // the two seconds of holding it in between are not.
+      if (poked > 0) {
+        poked -= dt;
+        if (poked <= 0) {
+          poked = 0;
+          speak();
+          return true;
+        }
+        const t = POKE_TIME - poked;
+        if (t >= POKE_SETTLE && poked >= POKE_RELEASE) return false;
+        const f = Math.round(t * POKE_FPS);
+        if (f === pokeFrame) return false;
+        pokeFrame = f;
+        return true;
+      }
+
       let moved = false;
 
       if (brows > 0) {
@@ -208,18 +309,30 @@ export function createClippy() {
       const x = w - CLIPPY_SETTINGS.right - W * s;
       const y = bottom - CLIPPY_SETTINGS.bottom - H * s;
 
+      // He has no mouth, so disgust comes out of the parts he does have: one
+      // eye squeezed most of the way shut, that brow flat on it and the other
+      // one near the ceiling, both pupils cut away to the far side, and the
+      // whole clip flinching back off the thing that touched him.
+      const face = expression();
+
       ctx.save();
       ctx.translate(x, y);
       ctx.scale(s, s);
       drawPad(ctx);
-      drawClip(ctx, blink, brows > 0);
+      drawClip(ctx, face, brows > 0);
       ctx.restore();
 
       // The balloon is drawn outside that scale on purpose: 11px text run
       // through a 1.4x transform is 11px text with soft edges, and this is a
       // raster where every other glyph lands on the pixel grid. It has its own
       // size in the settings instead.
-      if (line) drawBalloon(ctx, x + 34 * s, y + 14 * s, w - 10, line.say);
+      const g = geometry();
+      const say = poked > 0 ? pokeLine : line?.say;
+      if (say) drawBalloon(ctx, x + g.hookX * s, y + (g.top + 12) * s, w - 10, say);
+
+      // Where he is, so the shell can make him clickable. His own box rather
+      // than the balloon's: the balloon is words, and words are not him.
+      return { x, y, w: W * s, h: H * s };
     },
   };
 }
@@ -268,6 +381,9 @@ function drawPad(ctx) {
   ctx.restore();
 }
 
+/** Linear mix, for running a feature from its resting value to another. */
+const mix = (a, b, k) => a + (b - a) * k;
+
 /**
  * Where the clip is, worked out from the settings.
  *
@@ -311,9 +427,20 @@ function geometry() {
 }
 
 /** The wire, then the eyes, then the eyebrows, which is also the depth order. */
-function drawClip(ctx, blink, raised) {
+function drawClip(ctx, face, raised) {
   const S = CLIPPY_SETTINGS;
   const g = geometry();
+
+  // Leaning and shuddering happen about his feet, and take the clip only: the
+  // sheet of paper is lying on the desktop and has no opinion about any of
+  // this.
+  ctx.save();
+  if (face.lean || face.shake) {
+    const pivot = g.outerY + g.outerR;
+    ctx.translate(CX + face.shake, pivot);
+    ctx.rotate(face.lean);
+    ctx.translate(-CX, -pivot);
+  }
   // One gradient across the whole clip rather than one per leg. At this size
   // the difference is invisible and it costs four stops instead of sixteen.
   const wire = ctx.createLinearGradient(g.x1 - 2, 0, g.x4 + 4, 0);
@@ -354,16 +481,18 @@ function drawClip(ctx, blink, raised) {
   // right one caps the inner arm.
   const ex = g.x1 + S.eyeX;
   const ey = g.top + S.eyeDrop;
-  eye(ctx, ex, ey, S.eye, blink);
-  eye(ctx, ex + S.eyeGap, ey + S.eyeTilt, S.eye, blink);
+  eye(ctx, ex, ey, S.eye, face.blinkL, face);
+  eye(ctx, ex + S.eyeGap, ey + S.eyeTilt, S.eye, face.blinkR, face);
 
   // Eyebrows, heavy at the inner end and tapering out. They lift for a moment
   // whenever he starts a new line, which is the difference between a drawing
   // of a paperclip and something that just said a thing to you.
   const lift = (raised ? 3 : 0) + S.brow;
   ctx.strokeStyle = C.black;
-  brow(ctx, ex, ey, S.eye, lift);
-  brow(ctx, ex + S.eyeGap, ey + S.eyeTilt, S.eye, lift);
+  brow(ctx, ex, ey, S.eye, lift * face.browL);
+  brow(ctx, ex + S.eyeGap, ey + S.eyeTilt, S.eye, lift * face.browR);
+
+  ctx.restore();
 }
 
 /**
@@ -373,7 +502,7 @@ function drawClip(ctx, blink, raised) {
  * behind him, so anything that closes an eye by painting over it paints the
  * wrong colour over the wire.
  */
-function eye(ctx, cx, cy, r, blink = 0) {
+function eye(ctx, cx, cy, r, blink = 0, face = { lookX: -0.2, lookY: 0.08 }) {
   const lid = cy - r + blink * 2 * r;
 
   if (blink < 0.96) {
@@ -395,10 +524,11 @@ function eye(ctx, cx, cy, r, blink = 0) {
     ctx.stroke();
 
     // Pupils a little left of centre, so he is looking at the desktop rather
-    // than straight out of the tube.
+    // than straight out of the tube. Further over when he is looking away
+    // from something he would rather not have been touched by.
     ctx.fillStyle = C.black;
     ctx.beginPath();
-    ctx.ellipse(cx - r * 0.2, cy + 1, r * 0.5, r * 0.56, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx + r * face.lookX, cy + r * face.lookY, r * 0.5, r * 0.56, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   }

@@ -238,9 +238,13 @@ export function createShell({
     // With the icons, and so behind every window. The real Assistant floated
     // over whatever you were doing and was hated for exactly that: a window is
     // a thing you asked for and a paperclip is not, so anything you open takes
-    // the corner off him and he waits behind it. He registers no hit region
-    // either way, so a click that lands on him reaches the desktop.
-    clippy.draw(ctx, w, h - TASKBAR_H);
+    // the corner off him and he waits behind it.
+    //
+    // His hit region goes in here too, which is to say before every window's,
+    // and last added wins: a window covering him takes the clicks as well as
+    // the pixels, so there is never a patch of dead paperclip over a control.
+    const him = clippy.draw(ctx, w, h - TASKBAR_H);
+    hit.add(him.x, him.y, him.w, him.h, 'clippy', { type: 'clippy' });
 
     const snap = player.snapshot();
     const top = state.windows[state.windows.length - 1];
@@ -369,6 +373,13 @@ export function createShell({
         // Single click opens. Windows wanted a double, but a double click on a
         // texture mapped to a curved mesh is a genuinely hard thing to land.
         if (action.item.app) openWindow(action.item.app);
+        break;
+
+      // Poking him is the only thing on this desktop that answers back, so it
+      // does not clear the selection or shut the Start menu the way the
+      // wallpaper would. You touched the assistant; that is the whole event.
+      case 'clippy':
+        clippy.poke();
         break;
 
       case 'start':

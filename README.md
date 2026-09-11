@@ -172,9 +172,33 @@ joining the two left legs is a hairpin, and reads as one instantly.
 
 He is there from the moment the desktop paints, with no delay, because
 guidance that arrives five seconds late has already missed the people who
-needed it. He is drawn over application windows and under the taskbar, the way
-the Assistant always floated on top, and he registers no hit region, so a
-click meant for the window behind him still gets there.
+needed it. He is drawn behind every window: a window is a thing you asked for
+and a paperclip is not, so anything you open takes the corner off him and he
+waits behind it.
+
+Click him and he is appalled. He has no mouth, so it has to come out of the
+parts he does have: one eye squeezed most of the way shut with its brow flat
+on it, the other brow somewhere near the ceiling, both pupils cut away to the
+far side, and the whole clip flinching back off whatever just touched him. He
+says something about it, rotating through six complaints so a second poke is
+never the same one, then eases out of the face and goes back to being helpful.
+
+The flinch is a decaying sine on the lean and a sideways shudder, with the
+amplitude negative so the first quarter cycle goes away from the hand: a
+recoil that opens by tipping toward the thing that touched you reads as a nod,
+which is the opposite of the point. One number carries the rest of the face,
+running up as he pulls it, sitting at 1 while he holds it and running back
+down as he lets it go, with every feature mixed from its resting value toward
+the appalled one by that much. The motion repaints at 40fps rather than at
+frame rate, because the shudder moves him about two screen pixels and a
+120Hz display would otherwise spend three frames drawing each one: the whole
+performance costs about forty repaints, and the two seconds of holding the
+face in the middle cost none.
+
+His hit region is registered with the icons, which is to say before every
+window's, and the last region added wins, so a window covering him takes the
+clicks as well as the pixels and there is never a patch of dead paperclip
+sitting over a control.
 
 Press **L** outside a text field for **Clippy**, his own tweak panel, the same
 machinery the desk panel runs on and sitting beside it so both can be open at
@@ -217,9 +241,9 @@ one on the next frame.
 He keeps his own clock. A line stays up for as long as `dwell` says, thirteen
 and a half seconds as it stands, and then he thinks of another one; his eyebrows lift for a moment whenever he starts one; and he
 blinks every few seconds. All of it reports back to the shell, which still
-repaints only when something actually moved. An idle desktop measures at 13
-repaints in 10 seconds, and an idle camera costs nothing at all: he holds
-still while the view is flying or the machine is off.
+repaints only when something actually moved. An idle desktop measures at
+about a dozen repaints in 10 seconds, and an idle camera costs nothing at
+all: he holds still while the view is flying or the machine is off.
 
 What he says depends on what has not been opened yet. While My Photos is
 unopened he sells My Photos, then My Documents, then My Music, then Internet
