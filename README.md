@@ -182,7 +182,12 @@ once. **Clippy transform** carries Scale (30% to 300%, pinned by his bottom
 right corner), From right, Up from bar, Wire thickness and Eye size.
 **What he says** carries the balloon: Font (a CSS family, so type
 `"Comic Sans MS", cursive` into it and watch), Text size, Line height, Balloon
-wrap, Balloon pad, Balloon X and Y, and how many seconds a line stays up. The
+wrap, Balloon pad, Balloon X and Y, and how many seconds a line stays up.
+
+He talks in Cozette, a 6x13 bitmap face, at its own 13px. Like W95FA it is a
+family name and nothing more: no `@font-face` anywhere in this project, so it
+renders for anyone who has the font installed and falls back through the
+Windows stack for everyone else. The
 balloon moves on its own while the tail stays on his head. **Copy settings**
 hands back the complete `CLIPPY_SETTINGS` object to paste over the one in
 `src/ui/win95/clippy.js`, exactly as the note's does.

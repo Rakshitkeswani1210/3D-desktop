@@ -44,11 +44,15 @@ export const CLIPPY_SETTINGS = {
   wire: 8,         // how thick the paperclip is
   eye: 13,         // eyeball radius
 
-  font: FONT,      // what he talks in
-  size: 11,
-  width: 184,      // the balloon wraps at this
+  // Cozette first, a 6x13 bitmap face, because a balloon full of pixels on a
+  // CRT is the right kind of wrong. It has to be installed on the machine
+  // doing the looking: nothing here is loaded with @font-face, the same deal
+  // W95FA has always had, and the rest of the stack is the fallback.
+  font: `"Cozette", ${FONT}`,
+  size: 13,        // Cozette's own size; anything else is a resample
+  width: 220,      // the balloon wraps at this
   pad: 8,
-  line: 13,        // baseline to baseline
+  line: 15,        // baseline to baseline
   sayX: -24,       // where the balloon sits, tail still on his head
   sayY: 4,
 
