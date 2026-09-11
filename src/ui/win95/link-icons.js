@@ -268,6 +268,84 @@ function invision(ctx) {
   appTile(ctx, '#e02d55', '#ff7a9c', '#8f1636', '#ffffff', 'In');
 }
 
+/* ── 10. Figma — the five-shape mark ───────────────────────────────────── */
+function figma(ctx) {
+  // Two columns, three rows, one cell empty at the bottom right. The colours
+  // and that arrangement are the whole recognition; at 32px the rounded ends
+  // of the real mark are a pixel or two and add nothing.
+  const S = 9, x0 = 7, y0 = 3;
+  const cell = (cx, cy, fill) => {
+    r(ctx, x0 + cx * S, y0 + cy * S, S, S, OUT);
+    r(ctx, x0 + cx * S + 1, y0 + cy * S + 1, S - 2, S - 2, fill);
+  };
+  cell(0, 0, '#f24e1e');
+  cell(1, 0, '#ff7262');
+  cell(0, 1, '#a259ff');
+  cell(0, 2, '#0acf83');
+  // The middle-right one is a circle, and leaving it square loses the mark.
+  disc(ctx, x0 + S + 4, y0 + S + 4, 5, OUT);
+  disc(ctx, x0 + S + 4, y0 + S + 4, 4, '#1abcfe');
+}
+
+/* ── 11. GitHub — the cat, at the size a favicon gets ──────────────────── */
+function github(ctx) {
+  disc(ctx, 16, 16, 14, OUT);
+  disc(ctx, 16, 16, 13, '#1b1f23');
+
+  const W = '#ffffff';
+  const K = '#1b1f23';
+
+  // Ears before the head, so the head overlaps their base.
+  r(ctx, 9, 6, 3, 4, W);
+  r(ctx, 20, 6, 3, 4, W);
+
+  disc(ctx, 16, 12, 6, W);                     // head
+  r(ctx, 10, 12, 12, 4, W);
+  r(ctx, 13, 11, 2, 2, K);                     // eyes
+  r(ctx, 17, 11, 2, 2, K);
+
+  // A gap between head and body, then the tail curling away to the left. The
+  // gap is what stops the whole thing reading as one blob.
+  r(ctx, 11, 18, 10, 7, W);
+  for (let i = 0; i < 4; i++) r(ctx, 9 - i, 19 + i, 2, 1, W);
+  r(ctx, 5, 22, 2, 2, W);
+
+  r(ctx, 13, 23, 2, 3, K);                     // legs
+  r(ctx, 17, 23, 2, 3, K);
+}
+
+/* ── 12. OpenAI — the six-fold knot, as a rosette ──────────────────────── */
+function openai(ctx) {
+  disc(ctx, 16, 16, 14, OUT);
+  disc(ctx, 16, 16, 13, '#0d0d0d');
+
+  // Six lobes on a hexagon of side 6, each of radius 3, so neighbours just
+  // touch instead of merging. At the first attempt they were radius 4 on the
+  // same hexagon and overlapped into a plain donut, which is the one shape
+  // this must not be.
+  for (let i = 0; i < 6; i++) {
+    const a = (i * Math.PI) / 3 - Math.PI / 2;
+    disc(ctx, Math.round(16 + Math.cos(a) * 6), Math.round(16 + Math.sin(a) * 6), 3, '#ffffff');
+  }
+  disc(ctx, 16, 16, 3, '#ffffff');             // join the petals at the centre
+  disc(ctx, 16, 16, 2, '#0d0d0d');             // and punch the eye back out
+}
+
+/* ── 13. Copilot — a small helpful robot ───────────────────────────────── */
+function copilot(ctx) {
+  r(ctx, 15, 3, 2, 4, OUT);                    // antenna
+  r(ctx, 14, 2, 4, 2, '#26b50f');
+
+  plate(ctx, 5, 7, 22, 18, '#e3e3e3');         // head
+  r(ctx, 8, 11, 16, 8, OUT);                   // visor
+  r(ctx, 9, 12, 14, 6, '#1a3a6b');
+  r(ctx, 11, 14, 3, 3, '#7fd6ff');             // eyes
+  r(ctx, 18, 14, 3, 3, '#7fd6ff');
+  r(ctx, 3, 12, 3, 6, OUT);                    // ears
+  r(ctx, 26, 12, 3, 6, OUT);
+  r(ctx, 10, 21, 12, 2, '#8e8e8e');            // mouth grille
+}
+
 /**
  * name -> draw(ctx). Exported so the folder can ask for one by id without
  * knowing how any of them are built.
@@ -282,6 +360,10 @@ export const DRAW = {
   'app-sketch': sketch,
   'app-xd': adobeXd,
   'app-invision': invision,
+  'app-figma': figma,
+  'app-github': github,
+  'app-openai': openai,
+  'app-copilot': copilot,
 };
 
 /** Rendered once each, then reused — drawImage takes a canvas directly. */

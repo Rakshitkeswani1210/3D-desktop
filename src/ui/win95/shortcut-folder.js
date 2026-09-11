@@ -20,7 +20,7 @@ import { linkIcon } from './link-icons.js';
 
 export const DOCS_WINDOW = { w: 472, h: 292 };
 export const BIN_WINDOW = { w: 472, h: 244 };
-export const COMPUTER_WINDOW = { w: 472, h: 292 };
+export const COMPUTER_WINDOW = { w: 472, h: 324 };
 
 /** My Documents: things Rakshit has built or shipped. */
 export const DOCUMENTS = [
@@ -34,6 +34,22 @@ export const DOCUMENTS = [
     url: 'https://groww.in/futures-and-options' },
   { id: 'razorpay', label: 'Razorpay', glyph: 'link-card',
     url: 'https://razorpay.com/payment-gateway/' },
+];
+
+/**
+ * The tools, which live in My Computer alongside the machine's own folders.
+ *
+ * Windows 95 put the Control Panel and Printers in there next to the drives —
+ * things you open rather than places you keep files — so applications sitting
+ * beside folders is the shape the real one had.
+ */
+export const TOOLS = [
+  { id: 'github', label: 'GitHub', glyph: 'app-github',
+    url: 'https://github.com' },
+  { id: 'copilot', label: 'Copilot', glyph: 'app-copilot',
+    url: 'https://github.com/features/copilot' },
+  { id: 'openai', label: 'OpenAI', glyph: 'app-openai',
+    url: 'https://openai.com' },
 ];
 
 /**
@@ -57,6 +73,11 @@ export const RECYCLE_BIN = [
     origin: 'C:\\Program Files\\Adobe\\Adobe XD', deleted: '18/12/2023' },
   { id: 'invision', label: 'InVision', glyph: 'app-invision',
     origin: 'C:\\Program Files\\InVision', deleted: '31/12/2024' },
+  // In the bin with the three it replaced, but still a live shortcut: it
+  // carries a url and no deletion date, because the other three stopped
+  // mattering on a day you can name and this one has not.
+  { id: 'figma', label: 'Figma', glyph: 'app-figma',
+    origin: 'C:\\Program Files\\Figma', url: 'https://www.figma.com' },
 ];
 
 const TITLE_H = 18;

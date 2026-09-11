@@ -33,7 +33,7 @@ import {
 } from './photos.js';
 import { drawNotes, TITLE as NOTE_TITLE, WINDOW as NOTES_WINDOW } from './notes.js';
 import {
-  drawShortcutFolder, DOCUMENTS, RECYCLE_BIN,
+  drawShortcutFolder, DOCUMENTS, RECYCLE_BIN, TOOLS,
   DOCS_WINDOW, BIN_WINDOW, COMPUTER_WINDOW,
 } from './shortcut-folder.js';
 import { createPlayer } from './player.js';
@@ -97,6 +97,13 @@ export function createShell({ width, height, overlay = null, onShutDown = null }
 
   /** Folder id -> its selection state, for the one place that needs the map. */
   const FOLDERS = { documents, 'recycle-bin': bin, computer };
+
+  /**
+   * What My Computer holds: the machine's own folders, then the tools.
+   * Composed once rather than per frame, so the array identity is stable and
+   * the `includes` checks elsewhere stay cheap.
+   */
+  const COMPUTER_ITEMS = [...COMPUTER_CONTENTS, ...TOOLS];
 
   // Photos decode off disk rather than out of the bundle, so the window paints
   // its tiles empty and fills them in as they arrive.
@@ -214,7 +221,7 @@ export function createShell({ width, height, overlay = null, onShutDown = null }
       } else if (win.app === 'recycle-bin') {
         drawShortcutFolder(ctx, win, RECYCLE_BIN, bin, hit, hover, win === top);
       } else if (win.app === 'computer') {
-        drawShortcutFolder(ctx, win, COMPUTER_CONTENTS, computer, hit, hover, win === top);
+        drawShortcutFolder(ctx, win, COMPUTER_ITEMS, computer, hit, hover, win === top);
       }
     }
 
