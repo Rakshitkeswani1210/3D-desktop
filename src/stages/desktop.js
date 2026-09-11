@@ -220,21 +220,22 @@ export function createDesktopStage({ renderer }) {
   let soundOn = false;
 
   /**
-   * There are two independent ways for this page to make noise: the
-   * synthesised machine sounds behind core/audio.js's master gain, and the
-   * music player's HTMLAudioElement, which is deliberately outside that graph.
-   * The toggle has to close both, or "Sound off" is a lie the moment somebody
-   * presses play.
+   * Scope: the machine's own noises only — the fan whirring away in the
+   * background, and the clicks and thunks it makes when you press its
+   * buttons. Everything behind core/audio.js, in other words.
+   *
+   * Deliberately NOT the music player. That is a song somebody chose to put
+   * on, not a noise the computer decided to make, and a play button that
+   * produces silence because of a toggle across the room is a worse surprise
+   * than the sound itself. It has its own transport; whoever pressed play can
+   * press stop.
    */
   function applySound() {
     audio.setEnabled(soundOn);
-    shell.player.setMuted(!soundOn);
     soundBtn.textContent = soundOn ? 'Sound on' : 'Sound off';
     soundBtn.classList.toggle('off', !soundOn);
   }
 
-  // The markup starts muted to match; this makes the player agree before the
-  // toggle is ever touched.
   applySound();
 
   soundBtn.addEventListener('click', () => {
