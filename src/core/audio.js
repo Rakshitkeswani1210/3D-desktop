@@ -36,6 +36,15 @@ const VOICES = {
   degauss:{ freq: 220,  q: 0.5, dur: 0.130, gain: 0.10, body: 92,  bodyGain: 0.42 },
 };
 
+/**
+ * Master level.
+ *
+ * Dropped from 0.9 after three people said the scene was too loud. This is a
+ * thing that autoplays on a page somebody opened at work, so it should sit
+ * under the room rather than over it.
+ */
+const MASTER = 0.7;
+
 function build() {
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!AC) return false;
@@ -52,7 +61,7 @@ function build() {
   comp.release.value = 0.12;
 
   master = ctx.createGain();
-  master.gain.value = 0.9;
+  master.gain.value = MASTER;
   master.connect(comp);
   comp.connect(ctx.destination);
 
@@ -82,7 +91,7 @@ export function unlock() {
 /** Turn sound on or off. */
 export function setEnabled(on) {
   enabled = on;
-  if (master) master.gain.value = on ? 0.9 : 0;
+  if (master) master.gain.value = on ? MASTER : 0;
 }
 
 export const isEnabled = () => enabled;
@@ -165,7 +174,9 @@ export function startHum(ramp = 1.6) {
 
   const out = ctx.createGain();
   out.gain.setValueAtTime(0.0001, ctx.currentTime);
-  out.gain.exponentialRampToValueAtTime(0.05, ctx.currentTime + ramp);
+  // Halved: the fan is meant to be the thing you stop noticing, not the
+  // thing you turn down.
+  out.gain.exponentialRampToValueAtTime(0.026, ctx.currentTime + ramp);
   out.connect(master);
 
   const air = ctx.createBiquadFilter();
@@ -179,7 +190,7 @@ export function startHum(ramp = 1.6) {
   whine.Q.value = 6;
 
   const whineGain = ctx.createGain();
-  whineGain.gain.value = 0.35;
+  whineGain.gain.value = 0.18;   // the bearing, well under the airflow
 
   src.connect(air);
   air.connect(out);

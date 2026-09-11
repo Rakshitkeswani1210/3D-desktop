@@ -134,19 +134,19 @@ export function panel(ctx, x, y, w, h, kind = 'raised', fill = C.face, b = 1) {
  */
 export function text(ctx, str, x, y, {
   color = C.black, size = FS, align = 'left', baseline = 'top', bold = false,
-  font = FONT, underline = false, italic = false,
+  font = FONT, underline = false, italic = false, accelerators = true,
 } = {}) {
   ctx.font = `${italic ? 'italic ' : ''}${bold ? 'bold ' : ''}${size}px ${font}`;
   ctx.textAlign = 'left';
   ctx.textBaseline = baseline;
   ctx.fillStyle = color;
 
-  const plain = str.replace(/&(.)/g, '$1');
+  const plain = accelerators ? str.replace(/&(.)/g, '$1') : str;
   let startX = x;
   if (align === 'center') startX = x - ctx.measureText(plain).width / 2;
   else if (align === 'right') startX = x - ctx.measureText(plain).width;
 
-  const hit = str.indexOf('&');
+  const hit = accelerators ? str.indexOf('&') : -1;
   if (hit < 0) {
     ctx.fillText(str, startX, y);
     const w = ctx.measureText(str).width;
@@ -189,6 +189,7 @@ export function disabledText(ctx, str, x, y, opts = {}) {
  */
 export function button(ctx, x, y, w, h, label, {
   pressed = false, icon = null, iconSize = 16, bold = false, focus = false,
+  accelerators = true,
 } = {}) {
   panel(ctx, x, y, w, h, pressed ? 'sunken' : 'raised', pressed ? C.faceLit : C.face);
   const d = pressed ? 1 : 0;
@@ -199,7 +200,7 @@ export function button(ctx, x, y, w, h, label, {
     tx += iconSize + 4;
   }
   if (label) {
-    text(ctx, label, tx, y + Math.round((h - FS) / 2) + d - 1, { bold });
+    text(ctx, label, tx, y + Math.round((h - FS) / 2) + d - 1, { bold, accelerators });
   }
   if (focus) focusRect(ctx, x + 3, y + 3, w - 6, h - 6);
 }
@@ -350,13 +351,27 @@ export function desktopIcon(ctx, x, y, cellW, img, label, { selected = false } =
  *
  * Greedy and word-based, which is what a browser of this era did too — no
  * hyphenation, no justification, and a word longer than the line simply
- * overhangs rather than being chopped.
+ * overhangs rather than being chopped, unless `breakWords` is requested.
  */
-export function wrapText(ctx, str, maxWidth, { size = FS, font = FONT, bold = false } = {}) {
+export function wrapText(ctx, str, maxWidth, {
+  size = FS, font = FONT, bold = false, breakWords = false,
+} = {}) {
   ctx.font = `${bold ? 'bold ' : ''}${size}px ${font}`;
   const lines = [];
   let line = '';
   for (const word of str.split(/\s+/)) {
+    if (breakWords && ctx.measureText(word).width > maxWidth) {
+      if (line) lines.push(line);
+      line = '';
+      for (const char of word) {
+        if (line && ctx.measureText(line + char).width > maxWidth) {
+          lines.push(line);
+          line = '';
+        }
+        line += char;
+      }
+      continue;
+    }
     const next = line ? `${line} ${word}` : word;
     if (line && ctx.measureText(next).width > maxWidth) {
       lines.push(line);

@@ -139,6 +139,32 @@ Once a change is written into `desk-spec.js`, the panel drops it from storage on
 the next load rather than reporting it as outstanding forever — so the loop is
 tweak → copy → paste into the spec → reload → clean panel.
 
+### Note transform
+
+Press **T** outside a text field to open **Desk tweaks**. Its first group,
+**Note transform**, edits the welcome Notepad live: **Width**, **Height**,
+**Left (X)**, **Top (Y)**, **Title**, and multiline **Body text**. Layout uses
+pixels on the 800 x 600 desktop raster, not browser pixels. The default note is
+381 x 431 at (359, 78), titled "Rakshit's Computer".
+The note stays within the desktop, wraps long words, and offers mouse-wheel
+scrolling plus **Up**/**Down** buttons if edited text exceeds its height.
+
+**Copy settings** always includes the complete `NOTE_SETTINGS` object for
+`src/ui/win95/notes.js`, even when unchanged. Its JSON contains `x`, `y`, `w`,
+`h`, `title`, and `body`; newlines, quotes, and backslashes are escaped for
+copy/paste. Other scene tweaks retain their existing numeric diff above it.
+Paste that complete output back into chat to make it the new defaults.
+Text and layout changes persist alongside existing scene tweaks; **Reset**
+restores all panel defaults. Titles update in both the note and its taskbar tab.
+
+The cream My Photos tour hint appears after five seconds of eligible desktop
+time: the machine is on and the camera has settled in the zoomed view. Notes
+may stay open; opening, closing, or reopening it never resets the delay or
+hides the hint. The hint is drawn above application windows. Opening its
+target before the delay cancels that target's hint. Later unvisited tour
+targets also get the same five-second delay. Powering off, leaving the stage,
+or leaving the settled desktop view cancels the pending delay.
+
 ## Layout
 
 ```

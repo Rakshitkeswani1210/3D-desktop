@@ -14,10 +14,10 @@
 import { C, FS, FONT, FONT_MONO, panel, text, wrapText } from './chrome.js';
 import { icon } from './icons.js';
 
-export const WINDOW = { w: 604, h: 372 };
+export const WINDOW = { w: 381, h: 431 };
 
 /** The note's own name, which is also the window's. */
-export const TITLE = 'Welcome to My Computer';
+export const TITLE = "Rakshit's Computer";
 
 /**
  * Paragraphs, verbatim. An empty string is a blank line, exactly as it would
@@ -38,14 +38,38 @@ export const NOTE = [
   "So this is my lil corner. Photos from places I've been. Work I've shipped. "
   + "And the 3 songs I've played so many times I should probably be embarrassed.",
   '',
-  'Happy exploring. Nice to meet you.',
+  'Close this note and click around — every icon here opens something. '
+  + 'Happy exploring. Nice to meet you.',
 ];
+
+export const NOTE_SETTINGS = {
+  x: 359,
+  y: 78,
+  ...WINDOW,
+  title: TITLE,
+  body: NOTE.join('\n'),
+};
 
 const TITLE_H = 18;
 const MENU_H = 18;
 const PAD = 6;
 const SIZE = 12;
 const LINE_H = 15;
+
+export function layoutNotes(ctx, win) {
+  const lines = win.body.split(/\r\n|\r|\n/).flatMap((para) => {
+    const wrapped = wrapText(ctx, para, win.w - 12 - PAD * 2 - 4, {
+      size: SIZE, font: FONT_MONO, breakWords: true,
+    });
+    return wrapped.length ? wrapped : [''];
+  });
+  const pageHeight = win.h - (3 + TITLE_H + 1 + MENU_H) - 9;
+  const capacity = Math.max(1, Math.floor((pageHeight - PAD * 2) / LINE_H));
+  const scrolling = lines.length + 1 > capacity;
+  const visible = scrolling ? Math.max(1, capacity - 1) : capacity;
+  const maxScroll = Math.max(0, lines.length + 1 - visible);
+  return { lines, scrolling, visible, maxScroll };
+}
 
 export function drawNotes(ctx, win, hit, hover, active = true) {
   const { x, y, w, h } = win;
@@ -59,7 +83,14 @@ export function drawNotes(ctx, win, hit, hover, active = true) {
   hit.add(x + 3, y + 3, w - 6, TITLE_H, 'notes:titlebar', { type: 'drag', win });
   const glyph = icon('notepad-pen', 16);
   if (glyph) ctx.drawImage(glyph, x + 5, y + 4, 16, 16);
-  text(ctx, `${TITLE} - Notepad`, x + 24, y + 7, { color: C.white, bold: true });
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x + 24, y + 3, w - 48, TITLE_H);
+  ctx.clip();
+  text(ctx, `${win.title} - Notepad`, x + 24, y + 7, {
+    color: C.white, bold: true, accelerators: false,
+  });
+  ctx.restore();
 
   const closeX = x + w - 3 - 18;
   panel(ctx, closeX, y + 4, 16, 16, hover === 'notes:close' ? 'sunken' : 'raised', C.face);
@@ -86,25 +117,44 @@ export function drawNotes(ctx, win, hit, hover, active = true) {
   const ch = h - (cy - y) - 9;
   panel(ctx, cx, cy, cw, ch, 'field', C.white);
 
+  const layout = layoutNotes(ctx, win);
+  win.scroll = Math.max(0, Math.min(win.scroll ?? 0, layout.maxScroll));
+  win.maxScroll = layout.maxScroll;
+  const scrollH = layout.scrolling ? LINE_H : 0;
+
   ctx.save();
   ctx.beginPath();
-  ctx.rect(cx + 2, cy + 2, cw - 4, ch - 4);
+  ctx.rect(cx + 2, cy + 2, cw - 4, ch - 4 - scrollH);
   ctx.clip();
 
-  const maxW = cw - PAD * 2 - 4;
   let ly = cy + PAD;
-  for (const para of NOTE) {
-    if (!para) { ly += LINE_H; continue; }
-    for (const line of wrapText(ctx, para, maxW, { size: SIZE, font: FONT_MONO })) {
-      text(ctx, line, cx + PAD, ly, { size: SIZE, font: FONT_MONO });
-      ly += LINE_H;
-    }
+  for (const line of layout.lines.slice(win.scroll, win.scroll + layout.visible)) {
+    text(ctx, line, cx + PAD, ly, {
+      size: SIZE, font: FONT_MONO, accelerators: false,
+    });
+    ly += LINE_H;
   }
 
   // The caret, parked at the end of the text. Notepad always had one, and its
   // absence is the kind of thing you notice without noticing.
   ctx.fillStyle = C.black;
-  ctx.fillRect(cx + PAD, ly, 1, SIZE);
+  if (win.scroll + layout.visible > layout.lines.length) {
+    ctx.fillRect(cx + PAD, ly, 1, SIZE);
+  }
 
   ctx.restore();
+
+  if (layout.scrolling) {
+    const sy = cy + ch - LINE_H - 2;
+    ctx.fillStyle = C.face;
+    ctx.fillRect(cx + 2, sy, cw - 4, LINE_H);
+    text(ctx, 'Scroll to read more', cx + PAD, sy + 2);
+    for (const [label, delta, bx] of [['Up', -3, cx + cw - 70], ['Down', 3, cx + cw - 36]]) {
+      const id = `notes:scroll:${label}`;
+      const enabled = delta < 0 ? win.scroll > 0 : win.scroll < layout.maxScroll;
+      panel(ctx, bx, sy, 32, LINE_H, hover === id ? 'sunken' : 'raised');
+      text(ctx, label, bx + 3, sy + 2, { color: enabled ? C.black : C.shadow });
+      if (enabled) hit.add(bx, sy, 32, LINE_H, id, { type: 'note-scroll', win, delta });
+    }
+  }
 }

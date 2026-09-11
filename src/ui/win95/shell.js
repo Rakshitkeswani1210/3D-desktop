@@ -23,7 +23,7 @@
 import { load as loadIcons } from './icons.js';
 import {
   TASKBAR_H, DESKTOP_ICONS, COMPUTER_CONTENTS,
-  drawWallpaper, drawIconGrid, drawTaskbar, drawStartMenu,
+  drawWallpaper, drawIconGrid, drawTourHint, drawTaskbar, drawStartMenu,
 } from './desktop-ui.js';
 import { drawMusicPlayer, PLAYLIST, WINDOW as MUSIC_WINDOW } from './music-player.js';
 import { drawBrowser, contentRect, PAGES, PAGE_ZOOM, WINDOW as IE_WINDOW, HOME } from './browser.js';
@@ -31,7 +31,7 @@ import {
   drawPhotos, drawPhotoViewer, preloadThumbs, onImageLoad,
   WINDOW as PHOTOS_WINDOW, VIEWER as PHOTO_VIEWER,
 } from './photos.js';
-import { drawNotes, TITLE as NOTE_TITLE, WINDOW as NOTES_WINDOW } from './notes.js';
+import { drawNotes, NOTE_SETTINGS } from './notes.js';
 import {
   drawShortcutFolder, DOCUMENTS, RECYCLE_BIN, TOOLS,
   DOCS_WINDOW, BIN_WINDOW, COMPUTER_WINDOW,
@@ -60,7 +60,9 @@ function createHitList() {
  * @param opts.overlay    (ctx, w, h) run after the UI — the tube's scanlines
  * @param opts.onShutDown called when Start > Shut Down is chosen
  */
-export function createShell({ width, height, overlay = null, onShutDown = null } = {}) {
+export function createShell({
+  width, height, overlay = null, onShutDown = null, onNoteChange = null,
+} = {}) {
   const hit = createHitList();
 
   const state = {
@@ -85,6 +87,48 @@ export function createShell({ width, height, overlay = null, onShutDown = null }
 
   /** The photo folder's own state. */
   const photos = { selected: null, scroll: 0 };
+
+  /**
+   * The tour: what to point at next.
+   *
+   * Every tester said they did not know the desktop was clickable, and one
+   * asked to be shown "the next thing you want me to open". So the shell keeps
+   * track of what has been opened and points at the first thing that has not,
+   * in this order. Once all four have been seen it never points again — the
+   * lesson has landed by then, and continuing would be nagging.
+   */
+  const TOUR = ['photos', 'documents', 'music', 'browser'];
+  const visited = new Set();
+  const TOUR_DELAY = 5;
+  let tourId = null;
+  let tourElapsed = 0;
+
+  function tourCandidate() {
+    const app = TOUR.find((a) => !visited.has(a));
+    if (!app) return null;
+    return DESKTOP_ICONS.find((i) => i.app === app)?.id ?? null;
+  }
+
+  function pauseTour() {
+    if (tourId !== null) dirty = true;
+    tourId = null;
+    tourElapsed = 0;
+  }
+
+  function tickTour(dt, usable) {
+    const candidate = target && usable ? tourCandidate() : null;
+    if (candidate !== tourId) {
+      pauseTour();
+      tourId = candidate;
+    }
+    if (!tourId || tourElapsed >= TOUR_DELAY) return;
+    tourElapsed += dt;
+    if (tourElapsed >= TOUR_DELAY) dirty = true;
+  }
+
+  function tourTarget() {
+    return tourElapsed >= TOUR_DELAY && tourId === tourCandidate() ? tourId : null;
+  }
 
   /** My Documents' own selection. */
   const documents = { selected: null };
@@ -115,7 +159,21 @@ export function createShell({ width, height, overlay = null, onShutDown = null }
 
   /* ── windows ─────────────────────────────────────────────────────────── */
 
+  function applyNoteSettings() {
+    NOTE_SETTINGS.w = Math.round(Math.max(280, Math.min(width - 16, NOTE_SETTINGS.w)));
+    NOTE_SETTINGS.h = Math.round(Math.max(180, Math.min(height - TASKBAR_H - 16, NOTE_SETTINGS.h)));
+    NOTE_SETTINGS.x = Math.round(Math.max(0, Math.min(width - NOTE_SETTINGS.w, NOTE_SETTINGS.x)));
+    NOTE_SETTINGS.y = Math.round(Math.max(0, Math.min(height - TASKBAR_H - NOTE_SETTINGS.h, NOTE_SETTINGS.y)));
+    const win = state.windows.find((w) => w.app === 'notes');
+    if (win) {
+      Object.assign(win, NOTE_SETTINGS);
+      win.scroll = 0;
+    }
+    dirty = true;
+  }
+
   function openWindow(app, opts = {}) {
+    visited.add(app);
     const existing = state.windows.find((w) => w.app === app);
     if (existing) {
       // The viewer is reused rather than stacked: asking for a second photo
@@ -132,7 +190,7 @@ export function createShell({ width, height, overlay = null, onShutDown = null }
       music: { title: 'My Music', icon: 'audio-cd', size: MUSIC_WINDOW },
       browser: { title: 'Internet Explorer', icon: 'internet-explorer', size: IE_WINDOW },
       photos: { title: "Rakshit's Memories", icon: 'folder-pictures', size: PHOTOS_WINDOW },
-      notes: { title: NOTE_TITLE, icon: 'notepad-pen', size: NOTES_WINDOW },
+      notes: { title: NOTE_SETTINGS.title, icon: 'notepad-pen', size: NOTE_SETTINGS },
       documents: { title: 'My Documents', icon: 'folder-open-documents', size: DOCS_WINDOW },
       'recycle-bin': { title: 'Recycle Bin', icon: 'recycle-bin-full', size: BIN_WINDOW },
       computer: { title: 'My Computer', icon: 'computer-system', size: COMPUTER_WINDOW },
@@ -159,6 +217,7 @@ export function createShell({ width, height, overlay = null, onShutDown = null }
       minimized: false,
       photo: opts.photo || null,
     });
+    if (app === 'notes') applyNoteSettings();
     dirty = true;
   }
 
@@ -225,6 +284,8 @@ export function createShell({ width, height, overlay = null, onShutDown = null }
       }
     }
 
+    // Keep guidance visible even when an open note overlaps the icon column.
+    drawTourHint(ctx, tourTarget());
     if (state.startOpen) drawStartMenu(ctx, h - TASKBAR_H, hit, hover);
     drawTaskbar(ctx, w, h, state, hit, hover);
 
@@ -242,6 +303,12 @@ export function createShell({ width, height, overlay = null, onShutDown = null }
       const minVisible = 48;
       win.x = Math.max(minVisible - win.w, Math.min(width - minVisible, x - drag.dx));
       win.y = Math.max(0, Math.min(height - TASKBAR_H - 20, y - drag.dy));
+      if (win.app === 'notes') {
+        NOTE_SETTINGS.x = win.x;
+        NOTE_SETTINGS.y = win.y;
+        applyNoteSettings();
+        onNoteChange?.();
+      }
       dirty = true;
       return true;
     }
@@ -263,6 +330,14 @@ export function createShell({ width, height, overlay = null, onShutDown = null }
   /** Pointer left the surface: forget the highlight, but keep any drag alive. */
   function pointerLeave() {
     if (hover !== null) { hover = null; hoverAction = null; browser.status = ''; dirty = true; }
+  }
+
+  function scrollNotes(x, y, delta) {
+    const win = hit.at(x, y)?.action.win;
+    if (!win || win.app !== 'notes') return false;
+    win.scroll = Math.max(0, Math.min(win.maxScroll ?? 0, (win.scroll ?? 0) + delta));
+    dirty = true;
+    return true;
   }
 
   function pointerDown(x, y) {
@@ -346,6 +421,11 @@ export function createShell({ width, height, overlay = null, onShutDown = null }
 
       case 'close':
         closeWindow(action.app);
+        break;
+
+      case 'note-scroll':
+        action.win.scroll = Math.max(0, Math.min(
+          action.win.maxScroll ?? 0, action.win.scroll + action.delta));
         break;
 
       case 'ie':
@@ -438,6 +518,7 @@ export function createShell({ width, height, overlay = null, onShutDown = null }
   }
 
   function detach() {
+    pauseTour();
     target = null;
     hover = null;
     armed = null;
@@ -454,7 +535,8 @@ export function createShell({ width, height, overlay = null, onShutDown = null }
     dirty = false;
   }
 
-  function tick() {
+  function tick(dt = 0, usable = true) {
+    tickTour(dt, usable);
     const now = new Date();
     if (now.getMinutes() !== state.time.getMinutes()) { state.time = now; dirty = true; }
     if (dirty) repaint();
@@ -469,6 +551,7 @@ export function createShell({ width, height, overlay = null, onShutDown = null }
    * there to be read, the way a machine set up for a visitor would be.
    */
   function reset() {
+    pauseTour();
     state.windows.length = 0;
     state.selected = -1;
     state.startOpen = false;
@@ -485,6 +568,7 @@ export function createShell({ width, height, overlay = null, onShutDown = null }
     documents.selected = null;
     bin.selected = null;
     computer.selected = null;
+    visited.clear();
     player.stop();
     openWindow('notes');
     dirty = true;
@@ -495,9 +579,10 @@ export function createShell({ width, height, overlay = null, onShutDown = null }
   reset();
 
   return {
-    state, player, browser, draw, attach, detach, tick, reset, webTarget,
+    state, player, browser, draw, attach, detach, tick, reset, webTarget, pauseTour,
     pointerMove, pointerLeave, pointerDown, pointerUp,
     openWindow, closeWindow,
+    applyNoteSettings, scrollNotes,
     invalidate() { dirty = true; },
   };
 }

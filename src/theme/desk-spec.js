@@ -302,7 +302,7 @@ export const FRAMING = {
   // In millimetres, like every other number in this file. Converted at the
   // point of use, so the tweak panel can offer them in units you can reason
   // about against the desk they sit on.
-  position: [-96, 452, 1330],
+  position: [130, 450, 1158],
   target: [-120, 168, -120],
   /** Vertical FOV. Wider than the iPod's 32: this is a room, not a product. */
   fov: 30.5,

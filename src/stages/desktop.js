@@ -39,6 +39,7 @@ import { disposeTree } from '../lib/dispose.js';
 import { SHARED_MATERIALS } from '../theme/shared-materials.js';
 import { drawBoot, drawOff, crtGrille } from '../theme/desk-textures.js';
 import { createShell } from '../ui/win95/shell.js';
+import { NOTE_SETTINGS } from '../ui/win95/notes.js';
 import { createWebFrame } from '../ui/win95/web-frame.js';
 import * as Desktop from '../objects/desktop/Desktop.js';
 import * as audio from '../core/audio.js';
@@ -100,6 +101,7 @@ export function createDesktopStage({ renderer }) {
     height: screen.height,
     overlay: (ctx, w, h) => crtGrille(ctx, w, h, 1),
     onShutDown: () => throwSwitch(),
+    onNoteChange: () => tweak.sync(),
   });
 
   /**
@@ -201,15 +203,38 @@ export function createDesktopStage({ renderer }) {
   const powerHint = document.getElementById('power-hint');
 
   /**
+   * The sound toggle.
+   *
+   * There was no way to mute this scene at all — audio.setEnabled() existed and
+   * nothing called it — which is why the feedback asked for "mute by default".
+   * The real problem was the level, fixed in core/audio.js; this is for the
+   * person who opened the link at work regardless.
+   *
+   * It starts ON: the power thunk and the fan spinning up are a large part of
+   * what this is, and muting by default spends them on nobody.
+   */
+  const soundBtn = document.getElementById('desk-sound');
+  let soundOn = true;
+  soundBtn.addEventListener('click', () => {
+    soundOn = !soundOn;
+    audio.setEnabled(soundOn);
+    soundBtn.textContent = soundOn ? 'Sound on' : 'Sound off';
+    soundBtn.classList.toggle('off', !soundOn);
+  });
+
+  /**
    * The nudge toward the power button.
    *
    * Everything on this machine is behind one press, and a dark screen on a
-   * photograph of a desk does not obviously invite one. The bottom-left hint
-   * says so already, but it sits where nobody is looking. This waits three
-   * seconds — long enough not to talk over the arrival, short enough to catch
-   * somebody before they give up — and then points at the actual button.
+   * photograph of a desk does not obviously invite one.
+   *
+   * This was three seconds, on the theory that arriving instantly would talk
+   * over the scene. Two of three testers still said they did not realise they
+   * had to power it on, so the theory was wrong: with nothing else to do, three
+   * seconds of a dark screen is long enough to conclude the page is broken.
+   * One second, and styled as a callout rather than as more HUD furniture.
    */
-  const HINT_AFTER = 3;
+  const HINT_AFTER = 1;
   const hintAnchor = new THREE.Vector3();
   let hintT = null;                 // seconds since arming, or null when not armed
 
@@ -239,7 +264,7 @@ export function createDesktopStage({ renderer }) {
     const py = rect.top + (-hintAnchor.y * 0.5 + 0.5) * rect.height;
     if (px < rect.left || px > rect.right || py < rect.top || py > rect.bottom) return false;
     powerHint.style.left = `${Math.round(px)}px`;
-    powerHint.style.top = `${Math.round(py - 58)}px`;
+    powerHint.style.top = `${Math.round(py - 64)}px`;
     return true;
   }
 
@@ -320,7 +345,13 @@ export function createDesktopStage({ renderer }) {
     flown = false;
 
     if (on) {
-      audio.startHum();
+      // The fan deliberately does NOT start here. Pressing power kicks off the
+      // boot animation — a full 800x600 repaint every frame — and a camera
+      // flight at the same time, and starting a looping WebAudio source into
+      // that much main-thread work is what made the sound choppy. It starts
+      // when the boot lands instead, where its 1.6s ramp reads as the fan
+      // spinning up rather than as a glitch.
+      //
       // The flight is started from update(), FLY_AFTER into the boot, so the
       // flash lands before the camera begins to move.
     } else {
@@ -353,6 +384,7 @@ export function createDesktopStage({ renderer }) {
    * across the desk with no rebuild at all.
    */
   function applyLive() {
+    shell.applyNoteSettings();
     const { monitor: mon, tower, keyboard: kb } = desktop.userData.parts;
 
     mon.position.set(u(MONITOR.x), 0, u(MONITOR.z));
@@ -413,7 +445,10 @@ export function createDesktopStage({ renderer }) {
     groups: CONTROL_GROUPS,
     storageKey: 'desk-tweaks',
     title: 'Desk tweaks',
-    onLive: applyLive,
+    onLive: (spec) => {
+      if (spec?.target === NOTE_SETTINGS) shell.applyNoteSettings();
+      else applyLive();
+    },
     onRebuild: rebuild,
   });
 
@@ -421,6 +456,7 @@ export function createDesktopStage({ renderer }) {
   // a moment ago was built from the defaults.
   if (tweak.restoredRebuild) rebuild();
   else applyLive();
+  tweak.sync();
 
   const tweakBtn = document.getElementById('desk-tweak');
   const syncTweakBtn = () => tweakBtn.classList.toggle('on', tweak.isOpen());
@@ -551,6 +587,11 @@ export function createDesktopStage({ renderer }) {
   el.addEventListener('pointermove', onPointerMove);
   window.addEventListener('pointerup', onPointerUp);
   el.addEventListener('pointerleave', onPointerLeave);
+  el.addEventListener('wheel', (event) => {
+    if (!enabled || unlocked || event.deltaY === 0) return;
+    const p = screenPoint(event);
+    if (p && shell.scrollNotes(p.x, p.y, Math.sign(event.deltaY) * 3)) event.preventDefault();
+  }, { passive: false });
 
   backBtn.addEventListener('click', pullBack);
   camBtn.addEventListener('click', () => setUnlocked(!unlocked));
@@ -570,7 +611,7 @@ export function createDesktopStage({ renderer }) {
       }
     }
     // One repaint per frame at most, and only when something actually changed.
-    shell.tick();
+    shell.tick(dt, on && bootT === null && zoomed && !rig.moving && !unlocked);
 
     // The overlay re-derives its corners every frame from the same mesh and
     // camera the renderer uses, so it tracks the tube through camera moves,
@@ -614,6 +655,7 @@ export function createDesktopStage({ renderer }) {
           // The boot ends on the desktop, which is the whole point of booting.
           if (on) {
             shell.attach(screen);
+            audio.startHum();
           } else {
             // Powering off closes everything and silences the music, so the
             // next boot comes up on a clean desktop rather than mid-song.
@@ -659,8 +701,8 @@ export function createDesktopStage({ renderer }) {
 
   function onKeyDown(event) {
     if (!enabled) return;
-    // Never steal a key from the tweak panel's number fields.
-    if (event.target instanceof HTMLInputElement) return;
+    // Editing a note must not trigger the scene's T/C/Escape shortcuts.
+    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
 
     if (event.key === 'c' || event.key === 'C') {
       setUnlocked(!unlocked);
@@ -699,6 +741,7 @@ export function createDesktopStage({ renderer }) {
 
     deactivate() {
       enabled = false;
+      shell.pauseTour();
       webFrame.hide();
       dismissHint();
       // Put the camera back before leaving, so switching away and returning

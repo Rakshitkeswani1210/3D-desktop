@@ -67,26 +67,38 @@
         align-items: center;
         gap: 8px;
         white-space: nowrap;
-        font-size: 12px;
-        color: var(--ink);
-        background: var(--panel);
-        border: 1px solid var(--edge);
+        font-size: 13px;
+        font-weight: 600;
+        /* Deliberately NOT the HUD's panel colour. The first version used it
+           and two of three testers looked straight past this — styled like
+           chrome, read as chrome. The accent fill is the whole point. */
+        color: #06232e;
+        background: var(--accent);
+        border: 1px solid rgba(255,255,255,.55);
         border-radius: 999px;
-        padding: 7px 14px;
-        backdrop-filter: blur(10px);
-        box-shadow: 0 6px 24px rgba(0,0,0,.35);
+        padding: 8px 16px;
+        box-shadow: 0 8px 28px rgba(0,0,0,.45), 0 0 0 6px rgba(127,214,255,.18);
+      }
+
+      /* The tail, pointing down at the button it is talking about. */
+      #power-hint::after {
+        content: "";
+        position: absolute;
+        top: 100%; left: 50%;
+        margin-left: -7px;
+        border: 7px solid transparent;
+        border-top-color: var(--accent);
       }
       #power-hint.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
       /* A slow pulse on the dot only. The whole pill throbbing would be a
          nag; one blinking LED reads as the machine waiting for you. */
       #power-hint i {
-        width: 7px; height: 7px; border-radius: 50%;
-        background: var(--accent);
-        box-shadow: 0 0 8px var(--accent);
-        animation: hint-pulse 1.8s ease-in-out infinite;
+        width: 8px; height: 8px; border-radius: 50%;
+        background: #06232e;
+        animation: hint-pulse 1.4s ease-in-out infinite;
       }
-      @keyframes hint-pulse { 0%, 100% { opacity: 1 } 50% { opacity: .25 } }
+      @keyframes hint-pulse { 0%, 100% { opacity: 1 } 50% { opacity: .2 } }
 
       @media (prefers-reduced-motion: reduce) {
         #power-hint { transition: opacity .2s }
@@ -195,6 +207,7 @@
       <div class="controls hud">
         <button id="desk-back" class="pill" type="button">&larr; Back</button>
         <button id="desk-camera" class="pill" type="button">Camera</button>
+        <button id="desk-sound" class="pill" type="button">Sound on</button>
         <!-- Development tools, hidden from the HUD. The tweak panel is still
              on the t key and the part inspector is still at viewer.html; both
              are for building the scene, not for visiting it. -->

@@ -12,6 +12,7 @@
  */
 
 import { MONITOR, TOWER, KEYBOARD, DESK, FRAMING } from '../theme/desk-spec.js';
+import { NOTE_SETTINGS } from '../ui/win95/notes.js';
 
 const DEG = 180 / Math.PI;
 
@@ -24,6 +25,23 @@ const deg = (id, label, target, key, min = -30, max = 30) =>
   ({ id, label, target, key, min, max, step: 0.5, factor: DEG, unit: '°', decimals: 1 });
 
 export const CONTROL_GROUPS = [
+  {
+    label: 'Note transform',
+    export: { name: 'NOTE_SETTINGS', file: 'src/ui/win95/notes.js', target: NOTE_SETTINGS },
+    controls: [
+      ...[
+        ['w', 'Width', 280, 784],
+        ['h', 'Height', 180, 556],
+        ['x', 'Left (X)', 0, 520],
+        ['y', 'Top (Y)', 0, 392],
+      ].map(([key, label, min, max]) => ({
+        id: `NOTE_SETTINGS.${key}`, label, target: NOTE_SETTINGS, key,
+        min, max, step: 1, unit: 'px', decimals: 0, clamp: true,
+      })),
+      { id: 'NOTE_SETTINGS.title', label: 'Title', target: NOTE_SETTINGS, key: 'title', type: 'text' },
+      { id: 'NOTE_SETTINGS.body', label: 'Body text', target: NOTE_SETTINGS, key: 'body', type: 'textarea' },
+    ],
+  },
   {
     label: 'Camera',
     controls: [

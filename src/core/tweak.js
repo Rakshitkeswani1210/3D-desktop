@@ -51,6 +51,14 @@ const STYLE = `
 #tweak .row { display: grid; grid-template-columns: 74px 1fr 52px; gap: 8px; align-items: center; padding: 3px 12px; }
 #tweak .row label { font-size: 11px; color: rgba(232,236,245,.66); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #tweak .row.dirty label { color: #7fd6ff; }
+#tweak .row.text-row { grid-template-columns: 1fr; gap: 4px; }
+#tweak input[type=text], #tweak textarea {
+  width: 100%; min-width: 0; padding: 5px 6px;
+  font: inherit; color: #e8ecf5; background: rgba(255,255,255,.06);
+  border: 1px solid rgba(232,236,245,.12); border-radius: 4px;
+  user-select: text; -webkit-user-select: text;
+}
+#tweak textarea { min-height: 130px; resize: vertical; }
 #tweak input[type=range] {
   -webkit-appearance: none; appearance: none; width: 100%; height: 3px;
   background: rgba(232,236,245,.20); border-radius: 2px; outline: none; cursor: pointer;
@@ -86,7 +94,9 @@ const STYLE = `
 /**
  * @param {object} o
  * @param {Array} o.groups [{ label, open?, controls: [...] }]
- *   control: { id, label, target, key, min, max, step, factor?, unit?, rebuild? }
+ *   control: { id, label, target, key, min?, max?, step?, factor?, unit?, rebuild?, type? }
+ *   `type` may be text or textarea; omitted means a numeric slider.
+ *   A group's `export: { name, file, target }` includes its complete settings.
  *   `factor` converts stored units to displayed ones — radians to degrees, say.
  * @param {() => void} o.onLive     something cheap changed; reapply it
  * @param {() => void} o.onRebuild  a dimension changed; build the object again
@@ -101,9 +111,15 @@ export function createTweakPanel({ groups, onLive, onRebuild, storageKey = 'twea
   root.id = 'tweak';
   root.hidden = true;
 
-  const controls = new Map(); // id -> { spec, defaultValue, row, range, number }
+  const controls = new Map();
   const flat = groups.flatMap((g) => g.controls);
   for (const c of flat) controls.set(c.id, { spec: c, initial: c.target[c.key] });
+  const exports = groups.filter((g) => g.export);
+  const exportedIds = new Set(exports.flatMap((g) => g.controls.map((c) => c.id)));
+  const isText = (spec) => spec.type === 'text' || spec.type === 'textarea';
+  const constrain = (spec, value) => spec.clamp
+    ? Math.max(spec.min, Math.min(spec.max, Math.round(value / spec.step) * spec.step))
+    : value;
 
   /* ── restore anything saved from a previous session ─────────────────── */
 
@@ -115,13 +131,14 @@ export function createTweakPanel({ groups, onLive, onRebuild, storageKey = 'twea
   } catch { saved = {}; }
 
   let restoredRebuild = false;
-  for (const [id, value] of Object.entries(saved)) {
+  for (const [id, value] of Object.entries(saved || {})) {
     const c = controls.get(id);
     // Skip a stale id, and skip anything the spec file has since caught up
     // with: once a tweak has been applied to desk-spec.js, keeping it in
     // storage would show it as an outstanding change forever.
-    if (!c || typeof value !== 'number' || value === c.initial) continue;
-    c.spec.target[c.spec.key] = value;
+    if (!c || value === c.initial) continue;
+    if (isText(c.spec) ? typeof value !== 'string' : !Number.isFinite(value)) continue;
+    c.spec.target[c.spec.key] = isText(c.spec) ? value : constrain(c.spec, value);
     if (c.spec.rebuild) restoredRebuild = true;
   }
 
@@ -167,44 +184,63 @@ export function createTweakPanel({ groups, onLive, onRebuild, storageKey = 'twea
       const label = document.createElement('label');
       label.textContent = spec.label;
       label.title = `${spec.id}${spec.unit ? ` (${spec.unit})` : ''}`;
+      label.htmlFor = `tweak-${spec.id}`;
+
+      const write = (v) => {
+        spec.target[spec.key] = v;
+        if (spec.rebuild) {
+          clearTimeout(rebuildTimer);
+          rebuildTimer = setTimeout(onRebuild, 140);
+        } else {
+          onLive(spec);
+        }
+        syncInputs();
+        persist();
+        refreshFooter();
+      };
+
+      if (isText(spec)) {
+        const input = document.createElement(spec.type === 'textarea' ? 'textarea' : 'input');
+        if (spec.type === 'text') input.type = 'text';
+        else input.rows = 7;
+        input.id = label.htmlFor;
+        row.classList.add('text-row');
+        row.append(label, input);
+        details.appendChild(row);
+        Object.assign(c, { row, input });
+        input.addEventListener('input', () => write(input.value));
+        continue;
+      }
 
       const range = document.createElement('input');
       range.type = 'range';
       range.min = spec.min;
       range.max = spec.max;
       range.step = spec.step;
+      range.setAttribute('aria-label', `${spec.label} slider`);
 
       const number = document.createElement('input');
       number.type = 'number';
       number.step = spec.step;
+      number.id = label.htmlFor;
+      if (spec.clamp) { number.min = spec.min; number.max = spec.max; }
 
       row.append(label, range, number);
       details.appendChild(row);
       Object.assign(c, { row, range, number, toDisplay, fromDisplay });
 
-      const write = (displayValue, from) => {
-        const v = fromDisplay(displayValue);
-        spec.target[spec.key] = v;
-        if (from !== 'range') range.value = displayValue;
-        if (from !== 'number') number.value = displayValue;
-        row.classList.toggle('dirty', v !== c.initial);
-        persist();
-        refreshFooter();
-
-        if (spec.rebuild) {
-          // Debounced: dragging a dimension slider would otherwise rebuild the
-          // whole desk on every pointermove.
-          clearTimeout(rebuildTimer);
-          rebuildTimer = setTimeout(onRebuild, 140);
-        } else {
-          onLive();
-        }
-      };
-
-      range.addEventListener('input', () => write(+range.value, 'range'));
+      range.addEventListener('input', () => write(fromDisplay(constrain(spec, +range.value))));
       number.addEventListener('input', () => {
-        if (number.value === '') return;
-        write(+number.value, 'number');
+        if (number.value === '' || !Number.isFinite(number.valueAsNumber)) return;
+        // Keep incomplete numbers editable; native validity marks the field
+        // until it reaches the allowed range or is committed on blur.
+        if (spec.clamp && (number.validity.rangeUnderflow || number.validity.rangeOverflow)) return;
+        write(fromDisplay(constrain(spec, number.valueAsNumber)));
+      });
+      number.addEventListener('change', () => {
+        if (Number.isFinite(number.valueAsNumber)) {
+          write(fromDisplay(constrain(spec, number.valueAsNumber)));
+        }
       });
     }
 
@@ -228,8 +264,9 @@ export function createTweakPanel({ groups, onLive, onRebuild, storageKey = 'twea
 
   function refreshFooter() {
     const n = changed().length;
-    copyBtn.textContent = n ? `Copy ${n} change${n === 1 ? '' : 's'}` : 'No changes';
-    copyBtn.disabled = n === 0;
+    copyBtn.textContent = exports.length ? 'Copy settings'
+      : n ? `Copy ${n} change${n === 1 ? '' : 's'}` : 'No changes';
+    copyBtn.disabled = n === 0 && !exports.length;
     resetBtn.disabled = n === 0;
   }
 
@@ -242,23 +279,28 @@ export function createTweakPanel({ groups, onLive, onRebuild, storageKey = 'twea
    * session unrepeatable.
    */
   function report() {
-    const rows = changed().map((c) => {
+    const rows = changed().filter((c) => !exportedIds.has(c.spec.id)).map((c) => {
       const { spec } = c;
-      const from = c.toDisplay(c.initial);
-      const to = c.toDisplay(spec.target[spec.key]);
+      const display = isText(spec) ? JSON.stringify : c.toDisplay;
+      const from = display(c.initial);
+      const to = display(spec.target[spec.key]);
       return { id: spec.id, from, to, unit: spec.unit ?? '' };
     });
-    const width = Math.max(...rows.map((r) => r.id.length));
+    const width = Math.max(0, ...rows.map((r) => r.id.length));
     const lines = rows.map(
       (r) => `  ${r.id.padEnd(width)}  ${String(r.from).padStart(8)} → ${String(r.to).padStart(8)}${r.unit ? ` ${r.unit}` : ''}`
     );
-    return [
+    const diff = rows.length ? [
       'Apply these to src/theme/desk-spec.js:',
       '',
       ...lines,
       '',
       '(angles shown in degrees, lengths in mm)',
-    ].join('\n');
+    ].join('\n') : '';
+    const complete = exports.map(({ export: { name, file, target } }) =>
+      `Apply these complete settings to ${file} (${name}; layout in raster pixels):\n\n`
+      + JSON.stringify({ [name]: target }, null, 2));
+    return [diff, ...complete].filter(Boolean).join('\n\n');
   }
 
   copyBtn.addEventListener('click', async () => {
@@ -283,18 +325,23 @@ export function createTweakPanel({ groups, onLive, onRebuild, storageKey = 'twea
       if (c.spec.rebuild) needsRebuild = true;
       c.spec.target[c.spec.key] = c.initial;
     }
+    needsRebuild ? onRebuild() : onLive();
     syncInputs();
     persist();
     refreshFooter();
-    needsRebuild ? onRebuild() : onLive();
   });
 
   /** Push the current stored values back into every input. */
   function syncInputs() {
     for (const c of controls.values()) {
-      const v = c.toDisplay(c.spec.target[c.spec.key]);
-      c.range.value = v;
-      c.number.value = v;
+      if (c.input) {
+        const value = c.spec.target[c.spec.key];
+        if (c.input.value !== value) c.input.value = value;
+      } else {
+        const v = c.toDisplay(c.spec.target[c.spec.key]);
+        c.range.value = v;
+        if (c.number !== document.activeElement || +c.number.value !== v) c.number.value = v;
+      }
       c.row.classList.toggle('dirty', c.spec.target[c.spec.key] !== c.initial);
     }
   }
@@ -314,6 +361,6 @@ export function createTweakPanel({ groups, onLive, onRebuild, storageKey = 'twea
     },
     report,
     /** Re-read the spec — after something outside the panel has changed it. */
-    sync: syncInputs,
+    sync() { syncInputs(); persist(); refreshFooter(); },
   };
 }
