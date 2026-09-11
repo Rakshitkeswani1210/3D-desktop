@@ -235,6 +235,12 @@ export function createShell({
     hit.add(0, 0, w, h, 'desktop', { type: 'desktop' });
 
     drawIconGrid(ctx, state, hit, hover);
+    // With the icons, and so behind every window. The real Assistant floated
+    // over whatever you were doing and was hated for exactly that: a window is
+    // a thing you asked for and a paperclip is not, so anything you open takes
+    // the corner off him and he waits behind it. He registers no hit region
+    // either way, so a click that lands on him reaches the desktop.
+    clippy.draw(ctx, w, h - TASKBAR_H);
 
     const snap = player.snapshot();
     const top = state.windows[state.windows.length - 1];
@@ -254,13 +260,6 @@ export function createShell({
         drawShortcutFolder(ctx, win, COMPUTER_ITEMS, computer, hit, hover, win === top);
       }
     }
-
-    // Over the windows, under the shell. The Assistant floated on top of
-    // whatever you were doing, which is the only place a character in a corner
-    // can live: drawn underneath, the first window you open cuts him in half.
-    // He registers no hit region, so a click meant for the window behind him
-    // still reaches it.
-    clippy.draw(ctx, w, h - TASKBAR_H);
 
     if (state.startOpen) drawStartMenu(ctx, h - TASKBAR_H, hit, hover);
     drawTaskbar(ctx, w, h, state, hit, hover);
