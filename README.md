@@ -178,8 +178,26 @@ click meant for the window behind him still gets there.
 
 Press **L** outside a text field for **Clippy**, his own tweak panel, the same
 machinery the desk panel runs on and sitting beside it so both can be open at
-once. **Clippy transform** carries Scale (30% to 300%, pinned by his bottom
-right corner), From right, Up from bar, Wire thickness and Eye size.
+once, in four groups.
+
+**Clippy transform** is where he sits: Scale (30% to 300%, pinned by his
+bottom right corner), From right, Up from bar.
+
+**Clippy shape** bends the wire: Wire thickness, Clip width, Clip height,
+Inner U (how far down the small turn bottoms out), Mouth gap (the opening
+under the hook) and Right leg (how far the free leg rises). These are design
+units of his own 80x120 box rather than screen pixels, and Scale is what turns
+them into pixels. The four legs and all three radii are worked out from Clip
+width, because a gem clip's hook spans two thirds of its width and its inner U
+spans one third, so no combination of sliders can put the turns out of
+proportion or bend him back into a hairpin. The free ends are clamped too: a
+leg cannot be asked to rise past the turn it comes out of.
+
+**Clippy face** is the expression: Eye size, Eyes apart, Eyes down, Eyes
+across, Eye tilt (how much lower the right one sits), Brow arch and Brow
+weight. The eyes hang off the outer left leg and the brows off the eyes, so
+widening the clip carries the whole face with it.
+
 **What he says** carries the balloon: Font (a CSS family, so type
 `"Comic Sans MS", cursive` into it and watch), Text size, Line height, Balloon
 wrap, Balloon pad, Balloon X and Y, and how many seconds a line stays up.

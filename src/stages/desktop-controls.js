@@ -144,8 +144,34 @@ export const CLIPPY_GROUPS = [
       { id: 'CLIPPY_SETTINGS.scale', label: 'Scale', target: CLIPPY_SETTINGS, key: 'scale', min: 30, max: 300, step: 1, factor: 100, unit: '%', decimals: 0 },
       px('right', 'From right', 0, 700, 1),
       px('bottom', 'Up from bar', 0, 460, 1),
+    ],
+  },
+  {
+    // Design units of his own 80x120 box, not screen pixels: Scale above is
+    // what turns these into screen pixels. The four legs and three radii are
+    // derived from Clip width, so widening him keeps the turns in proportion
+    // and no setting here can bend the wire into something that is not a
+    // paperclip.
+    label: 'Clippy shape',
+    controls: [
       { id: 'CLIPPY_SETTINGS.wire', label: 'Wire', target: CLIPPY_SETTINGS, key: 'wire', min: 2, max: 14, step: 0.1, unit: 'px', decimals: 1 },
-      { id: 'CLIPPY_SETTINGS.eye', label: 'Eyes', target: CLIPPY_SETTINGS, key: 'eye', min: 5, max: 22, step: 0.5, unit: 'px', decimals: 1 },
+      px('clipW', 'Clip width', 24, 66, 1),
+      px('clipH', 'Clip height', 40, 112, 1),
+      { id: 'CLIPPY_SETTINGS.innerU', label: 'Inner U', target: CLIPPY_SETTINGS, key: 'innerU', min: 35, max: 95, step: 1, factor: 100, unit: '%', decimals: 0 },
+      px('mouth', 'Mouth gap', 0, 40, 1),
+      px('tail', 'Right leg', 4, 80, 1),
+    ],
+  },
+  {
+    label: 'Clippy face',
+    controls: [
+      { id: 'CLIPPY_SETTINGS.eye', label: 'Eye size', target: CLIPPY_SETTINGS, key: 'eye', min: 5, max: 22, step: 0.5, unit: 'px', decimals: 1 },
+      px('eyeGap', 'Eyes apart', 10, 44, 1),
+      px('eyeDrop', 'Eyes down', 6, 70, 1),
+      px('eyeX', 'Eyes across', -16, 24, 1),
+      px('eyeTilt', 'Eye tilt', -12, 16, 1),
+      px('brow', 'Brow arch', 0, 28, 1),
+      { id: 'CLIPPY_SETTINGS.browWeight', label: 'Brow weight', target: CLIPPY_SETTINGS, key: 'browWeight', min: 1, max: 9, step: 0.1, unit: 'px', decimals: 1 },
     ],
   },
   {

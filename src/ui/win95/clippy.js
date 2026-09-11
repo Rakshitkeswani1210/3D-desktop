@@ -29,6 +29,10 @@ import { C, FONT, text, wrapText } from './chrome.js';
 const W = 80;
 const H = 120;
 
+/** The clip's centre line in the box. He is a little right of the middle,
+    because the face hangs off his left leg and needs the room. */
+const CX = 42;
+
 /**
  * Everything about him the tweak panel can move, in raster pixels.
  *
@@ -42,7 +46,26 @@ export const CLIPPY_SETTINGS = {
   right: 31,       // in from the right edge of the screen
   bottom: 18,      // up from the top of the taskbar
   wire: 8,         // how thick the paperclip is
-  eye: 13,         // eyeball radius
+
+  /* The clip itself. Every one of these is a design unit of the box above,
+     and the four legs, three radii and both turns are derived from them, so
+     no combination of sliders can bend the wire into something that is not a
+     paperclip. See geometry() for what is worked out from what. */
+  clipW: 46,       // outer leg to outer leg
+  clipH: 110,      // hook apex to the bottom of the outer U
+  innerU: 0.76,    // how far down the inner U bottoms out, as a fraction
+  mouth: 34,       // the open gap under the hook
+  tail: 49,        // how far the free right leg rises
+
+  /* The face. The eyes hang off the left leg and the brows off the eyes, so
+     widening the clip moves the whole face with it. */
+  eye: 14,         // eyeball radius
+  eyeX: 1,         // the pair, left or right along the clip
+  eyeDrop: 30,     // and down from the hook apex
+  eyeGap: 30,      // centre to centre
+  eyeTilt: 3,      // how much lower the right one sits
+  brow: 15,        // how high the eyebrows arch over the eyes
+  browWeight: 5.6, // and how heavy they are
 
   // Cozette first, a 6x13 bitmap face, because a balloon full of pixels on a
   // CRT is the right kind of wrong. It has to be installed on the machine
@@ -50,9 +73,9 @@ export const CLIPPY_SETTINGS = {
   // W95FA has always had, and the rest of the stack is the fallback.
   font: `"Cozette", ${FONT}`,
   size: 13,        // Cozette's own size; anything else is a resample
-  width: 220,      // the balloon wraps at this
+  width: 184,      // the balloon wraps at this
   pad: 8,
-  line: 15,        // baseline to baseline
+  line: 13,        // baseline to baseline
   sayX: -24,       // where the balloon sits, tail still on his head
   sayY: 4,
 
@@ -208,15 +231,18 @@ export function createClippy() {
  * lines and a red margin, is half of the character, and it costs four fills.
  */
 function drawPad(ctx) {
-  const top = H - 26;
+  const g = geometry();
+  const k = CLIPPY_SETTINGS.clipW / 48;     // the sheet grows with the clip
+  const px = (v) => CX + (v - CX) * k;
+  const top = g.outerY + g.outerR - 18;
 
   // A shallow parallelogram, near edge to the left: the sheet lies on the
   // desktop rather than standing against it.
   ctx.beginPath();
-  ctx.moveTo(2, top + 8);
-  ctx.lineTo(64, top);
-  ctx.lineTo(82, top + 20);
-  ctx.lineTo(16, top + 30);
+  ctx.moveTo(px(2), top + 8);
+  ctx.lineTo(px(64), top);
+  ctx.lineTo(px(82), top + 20);
+  ctx.lineTo(px(16), top + 30);
   ctx.closePath();
   ctx.fillStyle = '#f2f0bd';
   ctx.fill();
@@ -230,35 +256,79 @@ function drawPad(ctx) {
   for (let i = 1; i <= 3; i++) {
     const t = i / 4;
     ctx.beginPath();
-    ctx.moveTo(2, top + 8 + t * 22);
-    ctx.lineTo(82, top + t * 20);
+    ctx.moveTo(px(2), top + 8 + t * 22);
+    ctx.lineTo(px(82), top + t * 20);
     ctx.stroke();
   }
   ctx.strokeStyle = '#d89a9a';
   ctx.beginPath();
-  ctx.moveTo(15, top + 7);
-  ctx.lineTo(24, top + 31);
+  ctx.moveTo(px(15), top + 7);
+  ctx.lineTo(px(24), top + 31);
   ctx.stroke();
   ctx.restore();
 }
 
+/**
+ * Where the clip is, worked out from the settings.
+ *
+ * A gem clip is not four independent legs: the top turn spans two thirds of
+ * the width and the inner U spans one third, so both radii fall out of the
+ * width alone. Deriving them is what lets the panel widen him without the
+ * turns going out of proportion, and what stops a slider from producing the
+ * hairpin this drawing used to be.
+ *
+ * The free ends are clamped rather than trusted, so a leg can never be asked
+ * to rise past the turn it comes out of and double back on itself.
+ */
+function geometry() {
+  const S = CLIPPY_SETTINGS;
+  const step = S.clipW / 3;             // one leg to the next
+  const x1 = CX - S.clipW / 2;          // outer left
+  const x2 = x1 + step;                 // inner left, the free end
+  const x3 = x1 + step * 2;             // inner right
+  const x4 = x1 + step * 3;             // outer right, the other free end
+
+  const bottom = H - 8;                 // his feet stay put as the rest moves
+  const top = bottom - S.clipH;
+
+  const hookR = step;                   // the wide turn, x1 across to x3
+  const hookY = top + hookR;
+  const outerR = S.clipW / 2;           // the bottom U, x1 across to x4
+  const outerY = bottom - outerR;
+  const innerR = step / 2;              // the small U, x2 across to x3
+  const innerY = Math.min(
+    top + S.innerU * S.clipH - innerR,
+    outerY - innerR * 1.2,              // never below the U it sits inside
+  );
+
+  return {
+    x1, x2, x3, x4, top, hookR, hookY, outerR, outerY, innerR, innerY,
+    // Both Us are centred on the clip's centre line; only the hook is not.
+    hookX: x1 + hookR,
+    mouthY: Math.min(hookY + S.mouth, innerY - 2),
+    tailY: Math.min(top + S.tail, outerY - 2),
+  };
+}
+
 /** The wire, then the eyes, then the eyebrows, which is also the depth order. */
 function drawClip(ctx, blink, raised) {
+  const S = CLIPPY_SETTINGS;
+  const g = geometry();
   // One gradient across the whole clip rather than one per leg. At this size
   // the difference is invisible and it costs four stops instead of sixteen.
-  const wire = ctx.createLinearGradient(16, 0, 70, 0);
+  const wire = ctx.createLinearGradient(g.x1 - 2, 0, g.x4 + 4, 0);
   wire.addColorStop(0, '#5a5a84');
   wire.addColorStop(0.3, '#d2d2e6');
   wire.addColorStop(0.62, '#9292b8');
   wire.addColorStop(1, '#4f4f78');
 
   ctx.strokeStyle = wire;
-  ctx.lineWidth = CLIPPY_SETTINGS.wire;
+  ctx.lineWidth = S.wire;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
 
   /*
-   * One piece of wire, four legs at 18, 34, 50 and 66.
+   * One piece of wire, four legs, three turns, all of it from geometry().
    *
    * The order the bends come in is the whole shape, and getting it wrong is
    * what makes a drawing read as a bent pin instead of a paperclip. A gem
@@ -269,29 +339,31 @@ function drawClip(ctx, blink, raised) {
    * hairpin, which is what this used to be.
    */
   ctx.beginPath();
-  ctx.moveTo(34, 32);                            // free end, tucked in the hook
-  ctx.lineTo(34, 84);
-  ctx.arc(42, 84, 8, Math.PI, 0, true);          // the inner U
-  ctx.lineTo(50, 20);
-  ctx.arc(34, 20, 16, 0, Math.PI, true);         // the wide hook over the top
-  ctx.lineTo(18, 88);
-  ctx.arc(42, 88, 24, Math.PI, 0, true);         // the outer U
-  ctx.lineTo(66, 40);                            // and up to the other free end
+  ctx.moveTo(g.x2, g.mouthY);                    // free end, tucked in the hook
+  ctx.lineTo(g.x2, g.innerY);
+  ctx.arc(CX, g.innerY, g.innerR, Math.PI, 0, true);         // the inner U
+  ctx.lineTo(g.x3, g.hookY);
+  ctx.arc(g.hookX, g.hookY, g.hookR, 0, Math.PI, true);      // the wide hook
+  ctx.lineTo(g.x1, g.outerY);
+  ctx.arc(CX, g.outerY, g.outerR, Math.PI, 0, true);         // the outer U
+  ctx.lineTo(g.x4, g.tailY);                     // and up to the other free end
   ctx.stroke();
 
   // Both eyes sit on the wire rather than beside it, which is the detail that
   // turns a paperclip into a face: the left one straddles the top turn, the
   // right one caps the inner arm.
-  eye(ctx, 18, 37, CLIPPY_SETTINGS.eye, blink);
-  eye(ctx, 45, 40, CLIPPY_SETTINGS.eye, blink);
+  const ex = g.x1 + S.eyeX;
+  const ey = g.top + S.eyeDrop;
+  eye(ctx, ex, ey, S.eye, blink);
+  eye(ctx, ex + S.eyeGap, ey + S.eyeTilt, S.eye, blink);
 
   // Eyebrows, heavy at the inner end and tapering out. They lift for a moment
   // whenever he starts a new line, which is the difference between a drawing
   // of a paperclip and something that just said a thing to you.
-  const lift = raised ? 3 : 0;
+  const lift = (raised ? 3 : 0) + S.brow;
   ctx.strokeStyle = C.black;
-  brow(ctx, 3, 30 - lift, 16, 18 - lift, 31, 25 - lift);
-  brow(ctx, 33, 28 - lift, 47, 16 - lift, 61, 26 - lift);
+  brow(ctx, ex, ey, S.eye, lift);
+  brow(ctx, ex + S.eyeGap, ey + S.eyeTilt, S.eye, lift);
 }
 
 /**
@@ -342,14 +414,28 @@ function eye(ctx, cx, cy, r, blink = 0) {
   }
 }
 
-/** One brow, drawn twice so it tapers: a fat curve with a thin one on its end. */
-function brow(ctx, x1, y1, cx, cy, x2, y2) {
-  ctx.lineWidth = 4.2;
+/**
+ * One brow, arched over the eye at `ex, ey` by `lift`.
+ *
+ * Drawn twice so it tapers: a fat curve, then a thin one carrying on from
+ * where it ended. A brow of one weight reads as a dash, and the taper is most
+ * of what makes him look interested rather than merely awake.
+ */
+function brow(ctx, ex, ey, r, lift) {
+  const x1 = ex - r * 1.1;
+  const y1 = ey - lift * 0.58;
+  const cx = ex - r * 0.15;
+  const cy = ey - lift * 1.58;
+  const x2 = ex + r * 0.96;
+  const y2 = ey - lift;
+  const w = CLIPPY_SETTINGS.browWeight;
+
+  ctx.lineWidth = w;
   ctx.beginPath();
   ctx.moveTo(x1, y1);
   ctx.quadraticCurveTo(cx, cy, x2 - (x2 - cx) * 0.45, y2 - (y2 - cy) * 0.45);
   ctx.stroke();
-  ctx.lineWidth = 2.2;
+  ctx.lineWidth = w * 0.52;
   ctx.beginPath();
   ctx.moveTo(x2 - (x2 - cx) * 0.5, y2 - (y2 - cy) * 0.5);
   ctx.quadraticCurveTo(x2 - (x2 - cx) * 0.2, y2 - (y2 - cy) * 0.2, x2, y2);
